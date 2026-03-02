@@ -1,8 +1,23 @@
 import sys
 
 from PyQt5.QtCore import QFile, QFile, QTextStream, QSize, Qt
-from PyQt5.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QPushButton, QLabel, QLineEdit, QVBoxLayout, QWidget
+# from PyQt5.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QPushButton, QLabel, QLineEdit, QVBoxLayout, QWidget
 from PyQt5.QtGui import QPalette, QColor
+from PyQt5.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QRadioButton,
+    QButtonGroup,
+    QSpinBox,
+    QComboBox,
+    QAction,
+    QLineEdit,
+)
 
 from character import Character
 # from classes import CLASSES
@@ -14,7 +29,6 @@ from feats import SRD_feats
 from invocations import SRD_invocations
 from skills import SRD_skills, show_skill
 from monsters import SRD_monsters, Monster, show_monster_list, show_monsters_by_rating, show_monster
-from dice import *
 from rules import show_rules
 
 from vesperis import Vesperis
@@ -22,6 +36,7 @@ from dagl import Dagl
 from dekland import Dekland
 from hrothgeirr import Hrothgeirr
 from leeroy import Leeroy
+from dice import roll_dice, sum_rolls
 
 
 LIGHT_BLUE = "#87CEEB"
@@ -45,6 +60,136 @@ class LabelandLineEdit(QWidget):
     
     def editLine(self, new_text):
         self.line_edit.setText(new_text)
+
+class DiceWindow(QMainWindow):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(f"<span style='color:{GOLD};'>Dice Roller</span>")
+
+        central = QWidget()
+        main_layout = QVBoxLayout()
+
+        # --- Choose function: roll_dice vs sum_rolls ---
+        func_label = QLabel("Choose function:")
+        self.radio_roll_dice = QRadioButton("roll_dice (single roll)")
+        self.radio_sum_rolls = QRadioButton("sum_rolls (multiple dice)")
+        self.radio_roll_dice.setChecked(True)
+
+        func_group_layout = QVBoxLayout()
+        func_group_layout.addWidget(func_label)
+        func_group_layout.addWidget(self.radio_roll_dice)
+        func_group_layout.addWidget(self.radio_sum_rolls)
+
+        main_layout.addLayout(func_group_layout)
+
+        # --- Dice type selection ---
+        dice_type_layout = QHBoxLayout()
+        dice_type_layout.addWidget(QLabel("Die type:"))
+
+        self.die_combo = QComboBox()
+        # common dice
+        self.die_combo.addItems(["4", "6", "8", "10", "12", "20", "100"])
+        self.die_combo.setCurrentText("20")
+
+        dice_type_layout.addWidget(self.die_combo)
+        main_layout.addLayout(dice_type_layout)
+
+        # --- Number of dice (for sum_rolls) ---
+        count_layout = QHBoxLayout()
+        count_layout.addWidget(QLabel("Number of dice (sum_rolls):"))
+        self.count_spin = QSpinBox()
+        self.count_spin.setMinimum(1)
+        self.count_spin.setMaximum(100)  # arbitrary cap
+        self.count_spin.setValue(1)
+        count_layout.addWidget(self.count_spin)
+        main_layout.addLayout(count_layout)
+
+        # connect radios to toggle method
+        self.radio_roll_dice.toggled.connect(self.update_count_spin_state)
+        self.radio_sum_rolls.toggled.connect(self.update_count_spin_state)
+        # set initial state
+        self.update_count_spin_state()
+
+        # # --- Drop lowest (for sum_rolls) ---
+        # drop_layout = QHBoxLayout()
+        # drop_layout.addWidget(QLabel("Drop lowest die (sum_rolls):"))
+        # self.drop_combo = QComboBox()
+        # self.drop_combo.addItems(["False", "True"])
+        # self.drop_combo.setCurrentText("False")
+        # drop_layout.addWidget(self.drop_combo)
+        # main_layout.addLayout(drop_layout)
+
+        # --- Roll button and result label ---
+        self.roll_button = QPushButton("Roll")
+        self.roll_button.clicked.connect(self.handle_roll)
+
+        self.result_label = QLabel("Result will appear here.")
+        main_layout.addWidget(self.roll_button)
+        main_layout.addWidget(self.result_label)
+
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+    
+    def update_count_spin_state(self):
+        """Enable count_spin only when sum_rolls is selected."""
+        self.count_spin.setEnabled(self.radio_sum_rolls.isChecked())
+
+    def handle_roll(self):
+        try:
+            die_size = int(self.die_combo.currentText())
+        except ValueError:
+            self.result_label.setText("Invalid die size.")
+            return
+
+        use_roll_dice = self.radio_roll_dice.isChecked()
+        use_sum_rolls = self.radio_sum_rolls.isChecked()
+
+        if use_roll_dice:
+            # roll_dice(dice: int = 20)
+            result = roll_dice(dice=die_size)
+            self.result_label.setText(f"roll_dice(d{die_size}) -> {result}")
+        elif use_sum_rolls:
+            # sum_rolls(dX=..., drop_lowest=...)
+            count = self.count_spin.value()
+            # drop_lowest = self.drop_combo.currentText() == "True"
+            drop_lowest = "False"
+
+            # Map selected die size to the correct parameter
+            kwargs = {
+                "d100": 0,
+                "d20": 0,
+                "d12": 0,
+                "d10": 0,
+                "d8": 0,
+                "d6": 0,
+                "d4": 0,
+                "drop_lowest": drop_lowest,
+            }
+
+            if die_size == 100:
+                kwargs["d100"] = count
+            elif die_size == 20:
+                kwargs["d20"] = count
+            elif die_size == 12:
+                kwargs["d12"] = count
+            elif die_size == 10:
+                kwargs["d10"] = count
+            elif die_size == 8:
+                kwargs["d8"] = count
+            elif die_size == 6:
+                kwargs["d6"] = count
+            elif die_size == 4:
+                kwargs["d4"] = count
+            else:
+                self.result_label.setText("Unsupported die size for sum_rolls.")
+                return
+
+            result = sum_rolls(**kwargs)
+            self.result_label.setText(
+                f"sum_rolls(d{die_size}={count}) -> {result}"
+            )
+        else:
+            self.result_label.setText("Please select a function.")
 
 
 # Subclass QMainWindow to customize your application's main window
@@ -268,6 +413,25 @@ class MainWindow(QMainWindow):
 
         # Set the central widget of the Window.
         self.setCentralWidget(container)
+
+        self._dice_window = None
+        self._create_menu()
+
+    def _create_menu(self):
+        menubar = self.menuBar()
+        # Use existing menu or create a new one
+        tools_menu = menubar.addMenu("Tools")
+
+        open_dice_action = QAction("Dice Roller", self)
+        open_dice_action.triggered.connect(self.open_dice_window)
+        tools_menu.addAction(open_dice_action)
+
+    def open_dice_window(self):
+        if self._dice_window is None:
+            self._dice_window = DiceWindow(self)
+        self._dice_window.show()
+        self._dice_window.raise_()
+        self._dice_window.activateWindow()
 
 app = QApplication(sys.argv)
 

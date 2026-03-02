@@ -627,6 +627,65 @@ class Character:
                         output += colored(f"\t\tHigher Level: {spell.higher_level}\n", 'white')
         print(output)
 
+    def format_single_spell(self, spell) -> str:
+        """
+        Return a formatted string for a single SPELLS object, in the same
+        style as show_spells_known() uses for each spell.
+        """
+        output = ""
+        if 0 == spell.level:
+            # output += f"<span style='color:{green};'>\t{spell.name}\n</span>"
+            output += f"<span style='color:#FF55FF;'>Level {str(spell.level)}:\n</span>"
+            output += f"<span style='color:green;'>\t\tSchool: </span>{spell.school['name']}\n"
+            output += f"<span style='color:green;'>\t\tRitual: </span>{spell.ritual}\n"
+            output += f"<span style='color:green;'>\t\tComponents: </span>{spell.components}, {spell.material}\n"
+            output += f"<span style='color:green;'>\t\tConcentration: </span>{spell.concentration}\n"
+            output += f"<span style='color:green;'>\t\tCasting time: </span>{spell.casting_time}\n"
+            output += f"<span style='color:green;'>\t\tDuration: </span>{spell.duration}\n"
+            if spell.name == 'Eldritch Blast' and self.class_name == 'Warlock':
+                for invocation in self.invocations:
+                    if invocation['name'] == 'Eldritch Invocation: Eldritch Spear':
+                        output += f"\t\t<span style='color:green;'>Range:</span> 300 feet, because of Eldritch Spear\n"
+            else:
+                output += f"<span style='color:green;'>\t\tRange:</span> {spell.range}\n"
+            if spell.name == 'Eldritch Blast' and self.class_name == 'Warlock':
+                for invocation in self.invocations:
+                    if invocation['name'] == 'Eldritch Invocation: Agonizing Blast':
+                        output += f"<span style='color:red;'>\t\tDamage:</span> {spell.damage['damage_type']['name']}, <span style='color:red;'>Damage at char level:</span> {spell.damage['damage_at_character_level']},  <span style='color:red;'>Damage bonus for Agonizing Blast:</span> +{str(self.get_ability_modifier(self.charisma))}\n"
+            elif spell.damage is not None:
+                if 'damage_at_character_level' in spell.damage.keys():
+                    output += f"<span style='color:red;'>\t\tDamage: </span>{spell.damage['damage_type']['name']}, <span style='color:red;'>Damage at char level:</span> {spell.damage['damage_at_character_level']}  \n"
+                else:
+                    output += f"<span style='color:red;'>\t\tDamage:</span> {spell.damage['damage_type']['name']}\n"
+            if spell.dc is not None:
+                output += f"<span style='color:red;'>\t\tDC:</span> {spell.dc['dc_type']['name']}, <span style='color:red;'>DC success:</span> {spell.dc['dc_success']}\n"
+            output += f"\t\tDescription: {spell.desc}\n"
+            if spell.name == 'Eldritch Blast' and self.class_name == 'Warlock':
+                for invocation in self.invocations:
+                    if invocation['name'] == 'Eldritch Invocation: Repelling Blast':
+                        output += f"\t\tEldritch Blast also pushes target up to 10 feet away from you, because of Repelling Blast\n"
+            output += f"<span style='color:green;'>\t\tHigher Level:</span> {spell.higher_level}\n"
+        else:
+            # output += f"<span style='color:green;'>\t{spell.name}\n</span>"
+            output += f"<span style='color:#FF55FF;'>Level {str(spell.level)}:\n</span>"
+            output += f"<span style='color:green;'>\t\tSchool:</span> {spell.school['name']}\n"
+            output += f"<span style='color:green;'>\t\tRitual:</span> {spell.ritual}\n"
+            output += f"<span style='color:green;'>\t\tComponents:</span> {spell.components}, {spell.material}\n"
+            output += f"<span style='color:green;'>\t\tConcentration:</span> {spell.concentration}\n"
+            output += f"<span style='color:green;'>\t\tCasting time:</span> {spell.casting_time}\n"
+            output += f"<span style='color:green;'>\t\tDuration:</span> {spell.duration}\n"
+            output += f"<span style='color:green;'>\t\tRange: </span>{spell.range}\n"
+            if spell.damage is not None:
+                if 'damage_at_slot_level' in spell.damage.keys():
+                    output += f"<span style='color:red;'>\t\tDamage:</span> {spell.damage['damage_type']['name']},<span style='color:red;'> Damage at slot level:</span> {spell.damage['damage_at_slot_level']}  \n"
+                else:
+                    output += f"<span style='color:red;'>\t\tDamage:</span> {spell.damage['damage_type']['name']}\n"
+            if spell.dc is not None:
+                output += f"<span style='color:red;'>\t\tDC:</span> {spell.dc['dc_type']['name']}, <span style='color:red;'>DC success:</span> {spell.dc['dc_success']}\n"
+            output += f"<span style='color:green;'>\t\tDescription: </span>{spell.desc}\n"
+            output += f"<span style='color:green;'>\t\tHigher Level:</span> {spell.higher_level}\n"
+        return output        
+
 
     def show_spells_prepared(self) -> None:
         output = ""

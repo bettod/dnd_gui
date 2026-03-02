@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QAction,
     QLineEdit,
+    QScrollArea,
 )
 
 from character import Character
@@ -44,6 +45,20 @@ STEEL_BLUE = "#4682B4"
 ROYAL_BLUE = "#4169E1"
 ORANGE     = "#FF5733"    
 GOLD       = "#FFD700"
+LIGHT_MAGENTA = "#FF55FF"
+
+def format_str_html(str_html: str) -> str:
+    """
+    Take the HTML-like str description from Character.format_single_spell for example
+    and normalize whitespace for QLabel rich text.
+    """
+    if not str_html:
+        return ""
+    return (
+        str_html
+        .replace("\t", "&emsp;")
+        .replace("\n", "<br>")
+    )
 
 class LabelandLineEdit(QWidget):
     def __init__(self, label_text, line_edit_text):
@@ -191,6 +206,179 @@ class DiceWindow(QMainWindow):
         else:
             self.result_label.setText("Please select a function.")
 
+class ItemListWindow(QMainWindow):
+    def __init__(self, character, parent=None):
+        super().__init__(parent)
+        self.character = character
+
+        char_name = getattr(character, "name", "Unknown")
+        self.setWindowTitle(f"Items - {char_name}")
+        self.resize(800, 600)
+
+        central = QWidget()
+        main_layout = QVBoxLayout()
+
+        # Scroll area in case there are many items
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+
+        items = getattr(character, "items", [])
+
+        for item in items:
+            # Try to support both objects and dicts
+            if isinstance(item, dict):
+                item_name = item.get("name", "Unknown item")
+                item_desc = item.get("description", "No description available.")
+            else:
+                item_name = getattr(item, "name", "Unknown item")
+                item_desc = getattr(item, "description", "No description available.")
+
+            item_container = QWidget()
+            item_layout = QVBoxLayout()
+            item_container.setLayout(item_layout)
+
+            btn = QPushButton(item_name)
+            btn.setCheckable(True)
+            btn.setStyleSheet(f"color: {ORANGE};")
+
+            html_desc = format_str_html(item_desc)
+            desc_label = QLabel(html_desc)
+            desc_label.setWordWrap(True)
+            desc_label.setVisible(False)
+            desc_label.setTextFormat(Qt.RichText)
+
+            btn.toggled.connect(lambda checked, lbl=desc_label: lbl.setVisible(checked))
+
+            item_layout.addWidget(btn)
+            item_layout.addWidget(desc_label)
+            scroll_layout.addWidget(item_container)
+
+        scroll_layout.addStretch(1)
+        scroll_widget.setLayout(scroll_layout)
+        scroll.setWidget(scroll_widget)
+
+        main_layout.addWidget(scroll)
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+
+class SpellListWindow(QMainWindow):
+    def __init__(self, character, parent=None):
+        super().__init__(parent)
+        self.character = character
+        self.setWindowTitle(f"<span style='color:{GOLD};'>Spells - {getattr(character, 'name', 'Unknown')}</span>")
+        # initial size (resizable)
+        self.resize(800, 800)  # width, height in pixels
+
+        central = QWidget()
+        main_layout = QVBoxLayout()
+
+        # header = QLabel(f"<span style='color:green;'>Spells known by {getattr(character, 'name', 'Unknown')}:</span>")
+        # main_layout.addWidget(header)
+
+        # Scroll area in case there are many spells
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+
+        # Build one "button + dropdown text" per spell
+        spells = getattr(character, "spells_known", [])
+        cantrips = getattr(character, "cantrips_known", [])
+
+         # --- First: cantrips (level 0) ---
+        if cantrips:
+            # cantrips header
+            lvl_label = QLabel(
+                f"<span style='color:{GOLD};'>Cantrips</span>"
+            )
+            lvl_label.setTextFormat(Qt.RichText)
+            lvl_label.setAlignment(Qt.AlignCenter)  # Set alignment to center
+            scroll_layout.addWidget(lvl_label)
+
+        for spell in cantrips:
+            # SPELLS object
+            spell_name = getattr(spell, "name", "Unknown cantrip")
+
+            # Use character helper to get same formatting as show_spells_known()
+            if hasattr(character, "format_single_spell"):
+                spell_desc = character.format_single_spell(spell)
+            else:
+                spell_desc = getattr(spell, "description", "No description available.")
+
+            # Container for each cantrip
+            spell_container = QWidget()
+            spell_layout = QVBoxLayout()
+            spell_container.setLayout(spell_layout)
+
+            btn = QPushButton(spell_name)
+            btn.setStyleSheet(f"color: {ORANGE};")
+            btn.setCheckable(True)
+
+            html_desc = format_str_html(spell_desc)
+            desc_label = QLabel(html_desc)
+            desc_label.setWordWrap(True)
+            desc_label.setVisible(False)
+
+            btn.toggled.connect(lambda checked, lbl=desc_label: lbl.setVisible(checked))
+
+            spell_layout.addWidget(btn)
+            spell_layout.addWidget(desc_label)
+            scroll_layout.addWidget(spell_container)
+
+        # --- Then: level 1+ spells, grouped by level ---
+        # group spells by their level attribute
+        spells_by_level = {}
+        for spell in spells:
+            level = getattr(spell, "level", 0)
+            spells_by_level.setdefault(level, []).append(spell)
+
+        # iterate levels in order
+        for level in sorted(spells_by_level.keys()):
+            # level label
+            lvl_label = QLabel(
+                f"<span style='color:{GOLD};'>Level {level} spells</span>"
+            )
+            lvl_label.setTextFormat(Qt.RichText)
+            lvl_label.setAlignment(Qt.AlignCenter)  # Set alignment to center
+            scroll_layout.addWidget(lvl_label)
+
+            for spell in spells_by_level[level]:
+                spell_name = getattr(spell, "name", "Unknown spell")
+
+                if hasattr(character, "format_single_spell"):
+                    spell_desc = character.format_single_spell(spell)
+                else:
+                    spell_desc = getattr(spell, "description", "No description available.")
+
+                spell_container = QWidget()
+                spell_layout = QVBoxLayout()
+                spell_container.setLayout(spell_layout)
+
+                btn = QPushButton(spell_name)
+                btn.setStyleSheet(f"color: {ORANGE};")
+                btn.setCheckable(True)
+
+                html_desc = format_str_html(spell_desc)
+                desc_label = QLabel(html_desc)
+                desc_label.setWordWrap(True)
+                desc_label.setVisible(False)
+
+                btn.toggled.connect(lambda checked, lbl=desc_label: lbl.setVisible(checked))
+
+                spell_layout.addWidget(btn)
+                spell_layout.addWidget(desc_label)
+                scroll_layout.addWidget(spell_container)
+
+        scroll_layout.addStretch(1)
+        scroll_widget.setLayout(scroll_layout)
+        scroll.setWidget(scroll_widget)
+
+        main_layout.addWidget(scroll)
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+
 
 # Subclass QMainWindow to customize your application's main window
 class MainWindow(QMainWindow):
@@ -223,7 +411,8 @@ class MainWindow(QMainWindow):
         # fixed window size. can also call setMinimumSize() and setMaximumSize()
         # self.setFixedSize(QSize(400, 300))
                 
-# ...existing code...
+        self._spell_windows = {}  # key: character.name, value: SpellListWindow instance
+        self._item_windows = {}   # key: character.name, value: ItemListWindow instance
 
         self.labelsNameList = [] # New list for name labels
         self.labelsClassLevelList = [] # New list for class and level labels
@@ -381,6 +570,11 @@ class MainWindow(QMainWindow):
             if not character.spells_known:
                 spell_list_button.setEnabled(False)  # Disable the button if there are no spells known
 
+            # connect to open spell list window for this character
+            spell_list_button.clicked.connect(
+                lambda _, c=character: self.open_spell_list_window(c)
+            )
+
             # Add widgets and button to layout
             layout = QVBoxLayout()
             layout.addWidget(self.labelsNameList[-1])  # Add name widget
@@ -432,6 +626,24 @@ class MainWindow(QMainWindow):
         self._dice_window.show()
         self._dice_window.raise_()
         self._dice_window.activateWindow()
+
+    def open_item_list_window(self, character):
+        name = getattr(character, "name", "Unknown")
+        if name not in self._item_windows:
+            self._item_windows[name] = ItemListWindow(character, self)
+        win = self._item_windows[name]
+        win.show()
+        win.raise_()
+        win.activateWindow()
+
+    def open_spell_list_window(self, character):
+        name = getattr(character, "name", "Unknown")
+        if name not in self._spell_windows:
+            self._spell_windows[name] = SpellListWindow(character, self)
+        win = self._spell_windows[name]
+        win.show()
+        win.raise_()
+        win.activateWindow()
 
 app = QApplication(sys.argv)
 

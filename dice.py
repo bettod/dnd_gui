@@ -37,3 +37,8 @@ def roll_with_advantage_disadvantage(
         rolls = [random.randint(1, dice) for _ in range(2)]
         result = max(rolls) if advantage else min(rolls)
     return result
+
+def roll_dice(dice: int = 20) -> int:
+    """Expected use: D20 (ability checks, saving throws, attack rolls)"""
+    result = random.randint(1, dice)
+    return result

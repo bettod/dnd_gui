@@ -90,6 +90,9 @@ class MainWindow(QMainWindow):
         self.labelsInitiativeList = []  # New list for initiative
         self.labelsProfBonusList = []  # New list for prof_bonus
         self.labelsAndLineEditStrAttackBonusList = []  # New list for Strength Attack Bonus
+        self.labelsAndLineEditDexAttackBonusList = []  # New list for Dexterity Attack Bonus
+        self.labelsAndLineEditSpellAttackBonusList = []  # New list for Spell Attack Bonus
+        self.labelsAndLineEditSpellDCList = []  # New list for Spell DC
         self.buttonsSpellListList = []  # New list for spell list buttons
 
         # Set fixed width for all labels and line edits
@@ -180,10 +183,58 @@ class MainWindow(QMainWindow):
             str_attack_bonus_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
             self.labelsAndLineEditStrAttackBonusList.append(str_attack_bonus_widget)
 
+            # Dexterity Attack Bonus label
+            dex_attack_bonus_widget = LabelandLineEdit(
+                f"<span style='color:green;'>DEX Atk. Bonus: </span>",
+                str(character.get_ability_modifier(character.dexterity) + character.prof_bonus)
+            )
+            dex_attack_bonus_widget.label.setFixedWidth(FIXED_WIDTH)
+            dex_attack_bonus_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            dex_attack_bonus_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
+            self.labelsAndLineEditDexAttackBonusList.append(dex_attack_bonus_widget)
+
+            # Spell Attack Bonus label
+            if character.spellcasting_stat == 'wisdom':
+                mod = character.get_ability_modifier(character.wisdom) + character.prof_bonus
+            elif character.spellcasting_stat == 'intelligence':
+                mod = character.get_ability_modifier(character.intelligence) + character.prof_bonus
+            elif character.spellcasting_stat == 'charisma':
+                mod = character.get_ability_modifier(character.charisma) + character.prof_bonus
+            else:
+                mod = "N/A"
+            spell_attack_bonus_widget = LabelandLineEdit(
+                f"<span style='color:green;'>Spell Atk. Bonus: </span>", str(mod))
+            spell_attack_bonus_widget.label.setFixedWidth(FIXED_WIDTH)
+            spell_attack_bonus_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            spell_attack_bonus_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
+            self.labelsAndLineEditSpellAttackBonusList.append(spell_attack_bonus_widget)
+            if not character.spellcasting_stat:
+                spell_attack_bonus_widget.line_edit.setEnabled(False)
+
+            # Spell Attack Bonus label
+            if character.spellcasting_stat == 'wisdom':
+                mod = character.get_ability_modifier(character.wisdom) + character.prof_bonus + 10
+            elif character.spellcasting_stat == 'intelligence':
+                mod = character.get_ability_modifier(character.intelligence) + character.prof_bonus + 10
+            elif character.spellcasting_stat == 'charisma':
+                mod = character.get_ability_modifier(character.charisma) + character.prof_bonus + 10
+            else:
+                mod = "N/A"
+            spell_dc_widget = LabelandLineEdit(
+                f"<span style='color:green;'>Spell DC: </span>", str(mod))
+            spell_dc_widget.label.setFixedWidth(FIXED_WIDTH)
+            spell_dc_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            spell_dc_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
+            self.labelsAndLineEditSpellDCList.append(spell_dc_widget)
+            if not character.spellcasting_stat:
+                spell_dc_widget.line_edit.setEnabled(False)
+
             # Spell List Button
             spell_list_button = QPushButton(f"Show {character.name}'s Spells")
             spell_list_button.setStyleSheet(f"color: {ROYAL_BLUE};")  # Set the text color to ROYAL_BLUE
             self.buttonsSpellListList.append(spell_list_button)
+            if not character.spells_known:
+                spell_list_button.setEnabled(False)  # Disable the button if there are no spells known
 
             # Add widgets and button to layout
             layout = QVBoxLayout()
@@ -196,6 +247,10 @@ class MainWindow(QMainWindow):
             layout.addWidget(self.labelsInitiativeList[-1])  # Add initiative widget
             layout.addWidget(self.labelsProfBonusList[-1])  # Add proficiency bonus widget
             layout.addWidget(self.labelsAndLineEditStrAttackBonusList[-1])  # Add strength attack bonus widget
+            layout.addWidget(self.labelsAndLineEditDexAttackBonusList[-1])  # Add dexterity attack bonus widget
+            layout.addWidget(self.labelsAndLineEditSpellAttackBonusList[-1])  # Add spell attack bonus widget
+            layout.addWidget(self.labelsAndLineEditSpellDCList[-1])  # Add spell DC widget
+            
             layout.addWidget(self.buttonsSpellListList[-1])  # Add spell list button
 
             # Wrap the layout in a QWidget to apply a border

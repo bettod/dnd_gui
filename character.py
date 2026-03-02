@@ -522,7 +522,7 @@ class Character:
 
 
     def show(self) -> None:
-        print(str(self))
+        return(str(self))
 
     def show_inventory(self) -> None:
         output = ''

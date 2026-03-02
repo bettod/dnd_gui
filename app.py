@@ -56,7 +56,8 @@ def format_str_html(str_html: str) -> str:
         return ""
     return (
         str_html
-        .replace("\t", "&emsp;")
+        # .replace("\t", "<pre>&emsp;</pre>")
+        # .replace("\t", "<pre></pre>")  # QLabel doesn't support &emsp;, so use spaces instead
         .replace("\n", "<br>")
     )
 
@@ -212,7 +213,7 @@ class ItemListWindow(QMainWindow):
         self.character = character
 
         char_name = getattr(character, "name", "Unknown")
-        self.setWindowTitle(f"Items - {char_name}")
+        self.setWindowTitle(f"<span style='color:{GOLD};'>Inventory - {getattr(character, 'name', 'Unknown')}</span>")
         self.resize(800, 600)
 
         central = QWidget()
@@ -224,15 +225,56 @@ class ItemListWindow(QMainWindow):
         scroll_widget = QWidget()
         scroll_layout = QVBoxLayout()
 
-        items = getattr(character, "items", [])
+        items = getattr(character, "inventory", [])
+        magic_items = getattr(character, "magicinventory", [])
+
 
         for item in items:
-            # Try to support both objects and dicts
-            if isinstance(item, dict):
-                item_name = item.get("name", "Unknown item")
-                item_desc = item.get("description", "No description available.")
+            # ITEMS object
+            item_name = getattr(item, "name", "Unknown item")
+
+            # Use character helper to get same formatting as show_inventory()
+            if hasattr(character, "format_single_item"):
+                item_desc = character.format_single_item(item)
             else:
-                item_name = getattr(item, "name", "Unknown item")
+                item_desc = getattr(item, "description", "No description available.")
+
+            item_container = QWidget()
+            item_layout = QVBoxLayout()
+            item_container.setLayout(item_layout)
+
+            btn = QPushButton(item_name)
+            btn.setCheckable(True)
+            btn.setStyleSheet(f"color: {ORANGE};")
+
+            html_desc = format_str_html(item_desc)
+            desc_label = QLabel(html_desc)
+            desc_label.setWordWrap(True)
+            desc_label.setVisible(False)
+            desc_label.setTextFormat(Qt.RichText)
+
+            btn.toggled.connect(lambda checked, lbl=desc_label: lbl.setVisible(checked))
+
+            item_layout.addWidget(btn)
+            item_layout.addWidget(desc_label)
+            scroll_layout.addWidget(item_container)
+        
+        # magic items header
+        magic_items_label = QLabel(
+            f"<span style='color:{GOLD};'>Magic Items</span>"
+        )
+        magic_items_label.setTextFormat(Qt.RichText)
+        magic_items_label.setAlignment(Qt.AlignCenter)  # Set alignment to center
+        scroll_layout.addWidget(magic_items_label)
+
+        for item in magic_items:
+            # ITEMS object
+            item_name = getattr(item, "name", "Unknown item")
+
+            # Use character helper to get same formatting as show_inventory()
+            if hasattr(character, "format_single_item"):
+                item_desc = character.format_single_item(item)
+            else:
                 item_desc = getattr(item, "description", "No description available.")
 
             item_container = QWidget()
@@ -428,6 +470,7 @@ class MainWindow(QMainWindow):
         self.labelsAndLineEditSpellAttackBonusList = []  # New list for Spell Attack Bonus
         self.labelsAndLineEditSpellDCList = []  # New list for Spell DC
         self.buttonsSpellListList = []  # New list for spell list buttons
+        self.buttonsItemListList = []  # New list for item list buttons
 
         # Set fixed width for all labels and line edits
         FIXED_WIDTH = 100  # Define a fixed width for all labels and line edits
@@ -575,6 +618,14 @@ class MainWindow(QMainWindow):
                 lambda _, c=character: self.open_spell_list_window(c)
             )
 
+            # Item list button (new)
+            item_list_button = QPushButton(f"Show {character.name}'s Inventory")
+            item_list_button.setStyleSheet(f"color:yellow;")  # Set the text color to yellow
+            self.buttonsItemListList.append(item_list_button)
+            item_list_button.clicked.connect(
+                lambda _, c=character: self.open_item_list_window(c)
+            )
+
             # Add widgets and button to layout
             layout = QVBoxLayout()
             layout.addWidget(self.labelsNameList[-1])  # Add name widget
@@ -591,6 +642,7 @@ class MainWindow(QMainWindow):
             layout.addWidget(self.labelsAndLineEditSpellDCList[-1])  # Add spell DC widget
             
             layout.addWidget(self.buttonsSpellListList[-1])  # Add spell list button
+            layout.addWidget(self.buttonsItemListList[-1])  # Add item list button
 
             # Wrap the layout in a QWidget to apply a border
             layout_widget = QWidget()

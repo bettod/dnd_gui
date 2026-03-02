@@ -547,6 +547,33 @@ class Character:
             output += colored(f"\t\t{item.desc}\n", 'white')
         print(output)
 
+    def format_single_item(self, item) -> str:
+        """
+        Return a formatted string for a single ITEMS object, in the same
+        style as show_inventory() uses for each item.
+        """
+        output = ''
+        if item in self.inventory:
+            # output += f"\t{item.name}\n", 'green')
+            if item.desc:
+                output += f"<span style='color:green;'>Description: </span>\t\t{item.desc}\n"
+            if item.special:
+                output += f"<span style='color:green;'>Specials: </span>\t\t{item.special}\n"
+            if item.damage:
+                output += f"<span style='color:red;'>Damage: </span>\t\t{item.damage['damage_dice']}, {item.damage['damage_type']['name']}\n"
+            if item.properties:
+                output += f"<span style='color:green;'>Properties: </span>"
+                for prop in item.properties:
+                    output += f"\t\t{prop['name']}, "
+            if item.armor_class:
+                output += f"\n<span style='color:green;'>Armor Class: </span>\t\t{str(item.armor_class['base'])}, <span style='color:green;'>Dex Bonus:</span> {item.armor_class['dex_bonus']}\n"
+            if item.armor_category:
+                output += f"<span style='color:green;'>Category: </span>\t\t{item.armor_category}\n"
+        elif item in self.magicinventory:
+            # output += f"<span style='color:green;'>\t{item.name}\n"
+            output += f"<span style='color:green;'>Description: </span>\t\t{item.desc}\n"
+        return output
+
     def show_invocations_known(self) -> None:
         if self.class_name != 'Warlock':
             print("Only warlocks have invocations.")
@@ -659,7 +686,7 @@ class Character:
                     output += f"<span style='color:red;'>\t\tDamage:</span> {spell.damage['damage_type']['name']}\n"
             if spell.dc is not None:
                 output += f"<span style='color:red;'>\t\tDC:</span> {spell.dc['dc_type']['name']}, <span style='color:red;'>DC success:</span> {spell.dc['dc_success']}\n"
-            output += f"\t\tDescription: {spell.desc}\n"
+            output += f"<span style='color:green;'>\t\tDescription:</span> {spell.desc}\n"
             if spell.name == 'Eldritch Blast' and self.class_name == 'Warlock':
                 for invocation in self.invocations:
                     if invocation['name'] == 'Eldritch Invocation: Repelling Blast':

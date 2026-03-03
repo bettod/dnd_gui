@@ -434,71 +434,70 @@ class Character:
 
     def __str__(self) -> str:
         output = ""
-        output += colored(f"Name: ", 'green') + colored(f"{self.name}\n", 'red')
-        output += colored(f"Gender: ", 'green') + colored(f"{self.gender}\n", 'white')
-        output += colored(f"Species: ", 'green') + colored(f"{self.species_name}\n", 'white')
-        output += colored(f"Class: ", 'green') + colored(f"{self.class_name}\n", 'white')
-        output += colored(f"Level: ", 'green') + colored(f"{self.level}\n", 'white')
-        output += colored(f"Description: ", 'green') + colored(f"{self.description}\n", 'white')
-        output += colored(f"Size: ", 'green') + colored(f"{self.size}\n", 'white')
-        output += colored(f"Speed: ", 'green') + colored(f"{str(self.speed)}\n", 'white')
-        output += colored(f"Aligment: ", 'green') + colored(f"{self.alignment}\n", 'white')
-        output += colored(f"Max Hit Points: ", 'green') + colored(f"{str(self.max_hp)}\n", 'red')
-        output += colored(f"Current Hit Points: ", 'green') + colored(f"{str(self.current_hp)}\n", 'red')
-        output += colored(f"Armor Class: ", 'green') + colored(f"{str(self.armor_class)}\n", 'white')
-        output += colored(f"Proficiencies:\t", 'green') + colored(f"{', '.join([value['name'] for value in self.proficiencies.values()])}\n", 'white')
-        output += colored(f"Traits:\n", 'green')
+        output += f"<span style='color:green;'>Gender:: </span>" + f"{self.gender}\n"
+        output += f"<span style='color:green;'>Species:: </span>" + f"{self.species_name}\n"
+        output += f"<span style='color:green;'>Class:: </span>" + f"{self.class_name}\n"
+        output += f"<span style='color:green;'>Level:: </span>" + f"{self.level}\n"
+        output += f"<span style='color:green;'>Description:: </span>" + f"{self.description}\n"
+        output += f"<span style='color:green;'>Size:: </span>" + f"{self.size}\n"
+        output += f"<span style='color:green;'>Speed:: </span>" + f"{str(self.speed)}\n"
+        output += f"<span style='color:green;'>Aligment: </span>" + f"{self.alignment}\n"
+        output += f"<span style='color:red;'>Max Hit Points:: </span>" + f"<span style='color:red;'>{str(self.max_hp)}\n</span>"
+        output += f"<span style='color:red;'>Current Hit Points:: </span>" + f"<span style='color:red;'>{str(self.current_hp)}\n</span>"
+        output += f"<span style='color:green;'>Armor Class:: </span>" + f"{str(self.armor_class)}\n"
+        output += f"<span style='color:green;'>Proficiencies:\t</span>" + f"{', '.join([value['name'] for value in self.proficiencies.values()])}\n"
+        output += f"<span style='color:green;'>Traits:\n</span>"
         for value in self.traits.values():
-            output += colored(f"\t{value['name']}: ", 'cyan') + f"{value['desc']}\n"
-        output += colored(f"Class Features:\n", 'green')
+            output += f"<span style='color:cyan;'>\t{value['name']}: </span>" + f"{value['desc']}\n"
+        output += f"<span style='color:green;'>Class Features:\n</span>"
         for value in self.class_features.values():
             if 'desc' in value.keys():
-                output += colored(f"\t{value['name']}: ", 'cyan') + f"{value['desc']}\n"
+                output += f"<span style='color:cyan;'>\t{value['name']}:</span> " + f"{value['desc']}\n"
             else:
-                output += colored(f"\t{value['name']}\n", 'cyan')
-        output += colored(f"Class Features Data:\n", 'green')
+                output += f"<span style='color:cyan;'>\t{value['name']}\n</span>"
+        output += f"<span style='color:green;'>Class Features Data:\n</span>"
         for key in self.class_features_data.keys():
-            output += colored(f"\t{key}: ", 'cyan') + f"{self.class_features_data[key]}\n"
-        output += colored(f"Cantrips Known:\n", 'green')
-        output += colored(f"\t{', '.join([item.name for item in self.cantrips_known])}\n\n", 'white')
-        output += colored(f"Spells Known:\n", 'green')
-        output += colored(f"\t{', '.join([item.name for item in self.spells_known])}\n\n", 'white')
+            output += f"<span style='color:cyan;'>\t{key}: </span>" + f"{self.class_features_data[key]}\n"
+        output += f"<span style='color:green;'>Cantrips Known:\n</span>"
+        output += f"\t{', '.join([item.name for item in self.cantrips_known])}\n\n"
+        output += f"<span style='color:green;'>Spells Known:\n</span>"
+        output += f"\t{', '.join([item.name for item in self.spells_known])}\n\n"
         if self.class_name == 'Warlock':
-            output += colored(f"Patron: ", 'green') + f"{self.patron}\n"
-            output += colored(f"Patron Features:\n", 'green')
+            output += f"<span style='color:green;'>Patron:: </span>" + f"{self.patron}\n"
+            output += f"<span style='color:green;'>Patron Features:\n</span>"
             for feature in self.patron_features:
-                output += colored(f"\t{feature['name']}: ", 'green') + colored(f"{feature['desc']}\n\n", 'white')
+                output += f"<span style='color:green;'>\t{feature['name']}:: </span>" + f"{feature['desc']}\n\n"
             output += colored(f"Invocations:\n", 'green')
-            output += colored(f"\t{', '.join([item['name'].replace('Eldritch Invocation: ', '') for item in self.invocations])}\n\n", 'white')
-            output += colored(f"Arcanum Spells:\n", 'green')
-            output += colored(f"\t{', '.join([item.name for item in self.arcanum_spells])}\n\n", 'white')
+            output += f"\t{', '.join([item['name'].replace('Eldritch Invocation: ', '') for item in self.invocations])}\n\n"
+            output += f"<span style='color:green;'>Arcanum Spells:\n</span>"
+            output += f"\t{', '.join([item.name for item in self.arcanum_spells])}\n\n"
         if self.class_name == 'Sorcerer':
-            output += colored(f"Origin: ", 'green') + f"{self.origin}\n"
-            output += colored(f"Origin Features:\n", 'green')
+            output += f"<span style='color:green;'>Origin:: </span>" + f"{self.origin}\n"
+            output += f"<span style='color:green;'>Origin Features:\n</span>"
             for feature in self.origin_features:
-                output += colored(f"\t{feature['name']}: ", 'green') + colored(f"{feature['desc']}\n\n", 'white')
-            output += colored(f"Metamagic:\n", 'green')
-            output += colored(f"\t{', '.join([item['name'].replace('Metamagic: ', '') for item in self.metamagic_feats])}\n\n", 'white')
-        output += colored(f"Feats:\n", 'green')
+                output += f"<span style='color:green;'>\t{feature['name']}:: </span>" + f"{feature['desc']}\n\n"
+            output += f"<span style='color:green;'>Metamagic:\n</span>"
+            output += f"\t{', '.join([item['name'].replace('Metamagic: ', '') for item in self.metamagic_feats])}\n\n"
+        output += f"<span style='color:green;'>Feats:\n</span>"
         for key in self.feats.keys():
-            output += colored(f"\t{key}: ", 'cyan') + f"{self.feats[key]['desc']}\n"
-        output += colored(f"Inventory:\n", 'green')
-        output += colored(f"\t{', '.join([item.name for item in self.inventory])}\n", 'white')
-        output += colored(f"\t{', '.join([item.name for item in self.magicinventory])}\n", 'white')
-        output += colored(f"Saving Throws:\n", 'green')
+            output += f"<span style='color:cyan;'>\t{key}: </span>" + f"{self.feats[key]['desc']}\n"
+        output += f"<span style='color:green;'>Inventory:\n</span>"
+        output += f"\t{', '.join([item.name for item in self.inventory])}\n"
+        output += f"\t{', '.join([item.name for item in self.magicinventory])}\n"
+        output += f"<span style='color:green;'>Saving Throws:\n</span>"
         for save in self.saving_throws.keys():
             if save in self.saving_throws_proficiency:
-                output += "\t" + colored(save, 'yellow') + f': {self.saving_throws[save]} + {self.prof_bonus}'
+                output += "<span style='color:yellow;'>\t" + save  + f'</span>: {self.saving_throws[save]} + {self.prof_bonus}'
             else:
-                output += "\t" + colored(save, 'yellow') + f': {self.saving_throws[save]}'
+                output += "\t<span style='color:yellow;'>" + save + f'</span>: {self.saving_throws[save]}'
         output += f"\n"
-        output += colored(f"Skills:\n", 'green')
+        output += f"<span style='color:green;'>Skills:\n</span>"
         for skill in self.skill_bonuses.keys():
             mod = self.skill_bonuses[skill]
             if self.skills_proficiency[skill]:
-                output += "\t" + colored(skill, 'yellow') + f': {mod} + {self.prof_bonus}'
+                output += "\t<span style='color:yellow;'>" + skill + f'</span>: {mod} + {self.prof_bonus}'
             else:
-                output += "\t" + colored(skill, 'yellow') + f': {mod}'
+                output += "\t<span style='color:yellow;'>" + skill + f'</span>: {mod}'
         output += f"\n"
         return output
 
@@ -523,6 +522,74 @@ class Character:
 
     def show(self) -> None:
         return(str(self))
+
+    def show_features(self) -> str:
+        output = ""
+        output += f"<span style='color:green;'>Size:: </span>" + f"{self.size}\n"
+        output += f"<span style='color:green;'>Aligment: </span>" + f"{self.alignment}\n"
+        output += f"<span style='color:green;'>Proficiencies:\t</span>" + f"{', '.join([value['name'] for value in self.proficiencies.values()])}\n"
+        output += f"<span style='color:green;'>Traits:\n</span>"
+        for value in self.traits.values():
+            output += f"<span style='color:cyan;'>\t{value['name']}: </span>" + f"{value['desc']}\n"
+        output += f"<span style='color:green;'>Class Features:\n</span>"
+        for value in self.class_features.values():
+            if 'desc' in value.keys():
+                output += f"<span style='color:cyan;'>\t{value['name']}:</span> " + f"{value['desc']}\n"
+            else:
+                output += f"<span style='color:cyan;'>\t{value['name']}\n</span>"
+        output += f"<span style='color:green;'>Class Features Data:\n</span>"
+        for key in self.class_features_data.keys():
+            if self.class_features_data[key] is not 0:
+                output += f"<span style='color:cyan;'>\t{key}: </span>" + f"{self.class_features_data[key]}\n"
+        output += f"<span style='color:green;'>Cantrips Known:\n</span>"
+        output += f"\t{', '.join([item.name for item in self.cantrips_known])}\n\n"
+        output += f"<span style='color:green;'>Spells Known:\n</span>"
+        output += f"\t{', '.join([item.name for item in self.spells_known])}\n\n"
+        if self.class_name == 'Warlock':
+            output += f"<span style='color:green;'>Patron:: </span>" + f"{self.patron}\n"
+            output += f"<span style='color:green;'>Patron Features:\n</span>"
+            for feature in self.patron_features:
+                output += f"<span style='color:green;'>\t{feature['name']}:: </span>" + f"{feature['desc']}\n\n"
+            output += colored(f"Invocations:\n", 'green')
+            output += f"\t{', '.join([item['name'].replace('Eldritch Invocation: ', '') for item in self.invocations])}\n\n"
+            output += f"<span style='color:green;'>Arcanum Spells:\n</span>"
+            output += f"\t{', '.join([item.name for item in self.arcanum_spells])}\n\n"
+        if self.class_name == 'Sorcerer':
+            output += f"<span style='color:green;'>Origin:: </span>" + f"{self.origin}\n"
+            output += f"<span style='color:green;'>Origin Features:\n</span>"
+            for feature in self.origin_features:
+                output += f"<span style='color:green;'>\t{feature['name']}:: </span>" + f"{feature['desc']}\n\n"
+            output += f"<span style='color:green;'>Metamagic:\n</span>"
+            output += f"\t{', '.join([item['name'].replace('Metamagic: ', '') for item in self.metamagic_feats])}\n\n"
+        output += f"<span style='color:green;'>Feats:\n</span>"
+        for key in self.feats.keys():
+            output += f"<span style='color:cyan;'>\t{key}: </span>" + f"{self.feats[key]['desc']}\n"
+        output += f"<span style='color:green;'>Inventory:\n</span>"
+        output += f"\t{', '.join([item.name for item in self.inventory])}\n"
+        output += f"\t{', '.join([item.name for item in self.magicinventory])}\n"
+        return output
+        
+    def show_saving_throws(self) -> str:
+        output = ""
+        output += f"<span style='color:green;'>Saving Throws:\n</span>"
+        for save in self.saving_throws.keys():
+            if save in self.saving_throws_proficiency:
+                output += "<span style='color:yellow;'>\t" + save  + f'</span>: {self.saving_throws[save]} + {self.prof_bonus}'
+            else:
+                output += "\t<span style='color:yellow;'>" + save + f'</span>: {self.saving_throws[save]}'
+        return output
+
+    def show_skill_bonuses(self) -> str:
+        output = ""
+        output += f"<span style='color:green;'>Skills:\n</span>"
+        for skill in self.skill_bonuses.keys():
+            mod = self.skill_bonuses[skill]
+            if self.skills_proficiency[skill]:
+                output += "\t<span style='color:yellow;'>" + skill + f'</span>: {mod} + {self.prof_bonus}\n'
+            else:
+                output += "\t<span style='color:yellow;'>" + skill + f'</span>: {mod}\n'
+        output += f"\n"
+        return output
 
     def show_inventory(self) -> None:
         output = ''
@@ -1204,15 +1271,15 @@ class Character:
         mod = self.get_ability_modifier(self.charisma)
         self.saving_throws['CHA'] = mod
 
-    def show_saving_throws(self) -> None:
-        """
-        Show saing throws bonuses
-        """
-        for save in self.saving_throws.keys():
-            if save in self.saving_throws_proficiency:
-                print(colored(save, 'green') + f': {self.saving_throws[save]} + {self.prof_bonus}')
-            else:
-                print(colored(save, 'green') + f': {self.saving_throws[save]}')
+    # def show_saving_throws(self) -> None:
+    #     """
+    #     Show saing throws bonuses
+    #     """
+    #     for save in self.saving_throws.keys():
+    #         if save in self.saving_throws_proficiency:
+    #             print(colored(save, 'green') + f': {self.saving_throws[save]} + {self.prof_bonus}')
+    #         else:
+    #             print(colored(save, 'green') + f': {self.saving_throws[save]}')
 
     def set_skill_proficiency(self, skill: str) -> None:
         """
@@ -1220,16 +1287,16 @@ class Character:
         """
         self.skills_proficiency[skill.lower()] = True
     
-    def show_skill_bonuses(self) -> None:
-        """
-        Show skill bonuses
-        """
-        for skill in self.skill_bonuses.keys():
-            mod = self.skill_bonuses[skill]
-            if self.skills_proficiency[skill]:
-                print(colored(skill, 'green') + f': {mod} + {self.prof_bonus}')
-            else:
-                print(colored(skill, 'green') + f': {mod}')
+    # def show_skill_bonuses(self) -> None:
+    #     """
+    #     Show skill bonuses
+    #     """
+    #     for skill in self.skill_bonuses.keys():
+    #         mod = self.skill_bonuses[skill]
+    #         if self.skills_proficiency[skill]:
+    #             print(colored(skill, 'green') + f': {mod} + {self.prof_bonus}')
+    #         else:
+    #             print(colored(skill, 'green') + f': {mod}')
 
     def set_skill_bonuses(self) -> None:
         """

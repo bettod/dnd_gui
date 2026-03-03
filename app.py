@@ -227,7 +227,7 @@ class FeaturesWindow(QMainWindow):
         # Use character.show() to get the text (assuming it returns a string;
         # if it prints, we need to refactor it to return instead)
         try:
-            features_text = character.show()
+            features_text = character.show_features()
         except TypeError:
             # if show() prints and returns None, fallback or adjust show()
             features_text = ""

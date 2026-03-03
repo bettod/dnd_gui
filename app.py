@@ -18,6 +18,7 @@ from PyQt5.QtWidgets import (
     QAction,
     QLineEdit,
     QScrollArea,
+    QCheckBox,    
 )
 
 from character import Character
@@ -85,7 +86,7 @@ class LabelandLineEdit(QWidget):
 class DiceWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f"Dice Roller")
+        self.setWindowTitle(f"<span style='color:{GOLD};'>Dice Roller</span>")
 
         central = QWidget()
         main_layout = QVBoxLayout()
@@ -334,7 +335,7 @@ class ItemListWindow(QMainWindow):
 
         char_name = getattr(character, "name", "Unknown")
         self.setWindowTitle(f"<span style='color:{GOLD};'>Inventory - {getattr(character, 'name', 'Unknown')}</span>")
-        self.resize(800, 600)
+        self.resize(400, 600)
 
         central = QWidget()
         main_layout = QVBoxLayout()
@@ -377,6 +378,12 @@ class ItemListWindow(QMainWindow):
 
             item_layout.addWidget(btn)
             item_layout.addWidget(desc_label)
+
+            # --- Equipped checkbox for weapons ---
+            is_weapon = getattr(item, "damage", None) is not None
+            if is_weapon:
+                equipped_checkbox = QCheckBox("Equipped")
+
             scroll_layout.addWidget(item_container)
         
         # magic items header

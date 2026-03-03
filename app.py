@@ -85,7 +85,7 @@ class LabelandLineEdit(QWidget):
 class DiceWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f"<span style='color:{GOLD};'>Dice Roller</span>")
+        self.setWindowTitle(f"Dice Roller")
 
         central = QWidget()
         main_layout = QVBoxLayout()

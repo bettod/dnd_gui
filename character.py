@@ -21,6 +21,9 @@ from dice import sum_rolls
 from features import get_class_features_data
 from feats import SRD_feats
 
+SALMON = '#FA8072'
+GOLDEN_ROD = '#DAA520'
+
 # Custom classes
 with open('./json_cache/api_classes_twilight-cleric.json') as json_file:
     data = json.load(json_file)
@@ -487,17 +490,17 @@ class Character:
         output += f"<span style='color:green;'>Saving Throws:\n</span>"
         for save in self.saving_throws.keys():
             if save in self.saving_throws_proficiency:
-                output += "<span style='color:yellow;'>\t" + save  + f'</span>: {self.saving_throws[save]} + {self.prof_bonus}'
+                output += f"<span style='color:{SALMON};'>\t" + save  + f'</span>: {self.saving_throws[save]} + {self.prof_bonus}'
             else:
-                output += "\t<span style='color:yellow;'>" + save + f'</span>: {self.saving_throws[save]}'
+                output += f"\t<span style='color:{SALMON};'>" + save + f'</span>: {self.saving_throws[save]}'
         output += f"\n"
         output += f"<span style='color:green;'>Skills:\n</span>"
         for skill in self.skill_bonuses.keys():
             mod = self.skill_bonuses[skill]
             if self.skills_proficiency[skill]:
-                output += "\t<span style='color:yellow;'>" + skill + f'</span>: {mod} + {self.prof_bonus}'
+                output += f"\t<span style='color:{SALMON};'>" + skill + f'</span>: {mod} + {self.prof_bonus}'
             else:
-                output += "\t<span style='color:yellow;'>" + skill + f'</span>: {mod}'
+                output += f"\t<span style='color:{SALMON};'>" + skill + f'</span>: {mod}'
         output += f"\n"
         return output
 
@@ -539,7 +542,7 @@ class Character:
                 output += f"<span style='color:cyan;'>\t{value['name']}\n</span>"
         output += f"<span style='color:green;'>Class Features Data:\n</span>"
         for key in self.class_features_data.keys():
-            if self.class_features_data[key] is not 0:
+            if self.class_features_data[key] != 0:
                 output += f"<span style='color:cyan;'>\t{key}: </span>" + f"{self.class_features_data[key]}\n"
         output += f"<span style='color:green;'>Cantrips Known:\n</span>"
         output += f"\t{', '.join([item.name for item in self.cantrips_known])}\n\n"
@@ -571,23 +574,23 @@ class Character:
         
     def show_saving_throws(self) -> str:
         output = ""
-        output += f"<span style='color:green;'>Saving Throws:\n</span>"
+        output += f"<span style='color:{GOLDEN_ROD};'>Saving Throws - {self.name.split( ' ')[0]}:\n</span>"
         for save in self.saving_throws.keys():
             if save in self.saving_throws_proficiency:
-                output += "<span style='color:yellow;'>\t" + save  + f'</span>: {self.saving_throws[save]} + {self.prof_bonus}'
+                output += f"<span style='color:{SALMON};'>\t" + save  + f'</span>: {self.saving_throws[save]} + {self.prof_bonus}\n'
             else:
-                output += "\t<span style='color:yellow;'>" + save + f'</span>: {self.saving_throws[save]}'
+                output += f"\t<span style='color:{SALMON};'>" + save + f'</span>: {self.saving_throws[save]}\n'
         return output
 
     def show_skill_bonuses(self) -> str:
         output = ""
-        output += f"<span style='color:green;'>Skills:\n</span>"
+        output += f"<span style='color:{GOLDEN_ROD};'>Skills - {self.name.split( ' ')[0]}:\n</span>"
         for skill in self.skill_bonuses.keys():
             mod = self.skill_bonuses[skill]
             if self.skills_proficiency[skill]:
-                output += "\t<span style='color:yellow;'>" + skill + f'</span>: {mod} + {self.prof_bonus}\n'
+                output += f"\t<span style='color:{SALMON};'>" + skill + f'</span>: {mod} + {self.prof_bonus}\n'
             else:
-                output += "\t<span style='color:yellow;'>" + skill + f'</span>: {mod}\n'
+                output += f"\t<span style='color:{SALMON};'>" + skill + f'</span>: {mod}\n'
         output += f"\n"
         return output
 

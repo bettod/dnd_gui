@@ -46,6 +46,11 @@ ROYAL_BLUE = "#4169E1"
 ORANGE     = "#FF5733"    
 GOLD       = "#FFD700"
 LIGHT_MAGENTA = "#FF55FF"
+GOLDEN_ROD = "#DAA520"
+DARK_SLATE_BLUE = "#483D8B"
+SALMON = '#FA8072'
+SANDY_BROWN = '#F4A460'
+TEAL = '#008080'
 
 def format_str_html(str_html: str) -> str:
     """
@@ -233,6 +238,82 @@ class FeaturesWindow(QMainWindow):
             features_text = ""
 
         html = format_str_html(features_text)
+        label = QLabel(html)
+        label.setWordWrap(True)
+        label.setTextFormat(Qt.RichText)
+
+        scroll_layout.addWidget(label)
+        scroll_layout.addStretch(1)
+        scroll_widget.setLayout(scroll_layout)
+        scroll.setWidget(scroll_widget)
+
+        main_layout.addWidget(scroll)
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+
+class SavingThrowsWindow(QMainWindow):
+    def __init__(self, character, parent=None):
+        super().__init__(parent)
+        self.character = character
+
+        char_name = getattr(character, "name", "Unknown")
+        self.setWindowTitle(f"Saving Throws - {char_name}")
+        self.resize(200, 200)
+
+        central = QWidget()
+        main_layout = QVBoxLayout()
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+
+        # Use character.show_saving_throws() to get the text
+        try:
+            saving_text = character.show_saving_throws()
+        except TypeError:
+            # if show_saving_throws() prints and returns None, fallback
+            saving_text = ""
+
+        html = format_str_html(saving_text)
+        label = QLabel(html)
+        label.setWordWrap(True)
+        label.setTextFormat(Qt.RichText)
+
+        scroll_layout.addWidget(label)
+        scroll_layout.addStretch(1)
+        scroll_widget.setLayout(scroll_layout)
+        scroll.setWidget(scroll_widget)
+
+        main_layout.addWidget(scroll)
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+
+class SkillsWindow(QMainWindow):
+    def __init__(self, character, parent=None):
+        super().__init__(parent)
+        self.character = character
+
+        char_name = getattr(character, "name", "Unknown")
+        self.setWindowTitle(f"Skills - {char_name}")
+        self.resize(200, 400)
+
+        central = QWidget()
+        main_layout = QVBoxLayout()
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+
+        # Use character.show_skill_bonuses() to get the text
+        try:
+            skills_text = character.show_skill_bonuses()
+        except TypeError:
+            # if show_saving_throws() prints and returns None, fallback
+            skills_text = ""
+
+        html = format_str_html(skills_text)
         label = QLabel(html)
         label.setWordWrap(True)
         label.setTextFormat(Qt.RichText)
@@ -495,6 +576,8 @@ class MainWindow(QMainWindow):
         self._spell_windows = {}  # key: character.name, value: SpellListWindow instance
         self._item_windows = {}   # key: character.name, value: ItemListWindow instance
         self._features_windows = {}  # key: character.name -> FeaturesWindow
+        self._saving_throws_windows = {}  # name -> SavingThrowsWindow
+        self._skills_windows = {}  # name -> SkillsWindow
 
         self.labelsNameList = [] # New list for name labels
         self.labelsClassLevelList = [] # New list for class and level labels
@@ -509,6 +592,9 @@ class MainWindow(QMainWindow):
         self.labelsAndLineEditDexAttackBonusList = []  # New list for Dexterity Attack Bonus
         self.labelsAndLineEditSpellAttackBonusList = []  # New list for Spell Attack Bonus
         self.labelsAndLineEditSpellDCList = []  # New list for Spell DC
+
+        self.buttonsSkillsListList = []  # New list for skills buttons
+        self.buttonsSavingThrowsListList = []  # New list for saving throws buttons
         self.buttonsFeatureListList = []  # New list for feature list buttons
         self.buttonsSpellListList = []  # New list for spell list buttons
         self.buttonsItemListList = []  # New list for item list buttons
@@ -647,6 +733,22 @@ class MainWindow(QMainWindow):
             if not character.spellcasting_stat:
                 spell_dc_widget.line_edit.setEnabled(False)
 
+            # Saving Throws Button
+            saving_throws_button = QPushButton("Saving Throws")
+            saving_throws_button.setStyleSheet(f"color: {GOLDEN_ROD};")  # Set the text color to ROYAL_BLUE
+            self.buttonsSavingThrowsListList.append(saving_throws_button)
+            saving_throws_button.clicked.connect(
+                lambda _, c=character: self.open_saving_throws_window(c)
+            )
+
+            # Skills Button
+            skills_button = QPushButton("Skills")
+            skills_button.setStyleSheet(f"color: {TEAL};")  # Set the text color to ROYAL_BLUE
+            self.buttonsSkillsListList.append(skills_button)
+            skills_button.clicked.connect(
+                lambda _, c=character: self.open_skills_window(c)
+            )
+
             # Feature List Button
             features_button = QPushButton("Features")
             features_button.setStyleSheet(f"color: cyan;")  # Set the text color to ROYAL_BLUE
@@ -690,6 +792,8 @@ class MainWindow(QMainWindow):
             layout.addWidget(self.labelsAndLineEditSpellAttackBonusList[-1])  # Add spell attack bonus widget
             layout.addWidget(self.labelsAndLineEditSpellDCList[-1])  # Add spell DC widget
             
+            layout.addWidget(self.buttonsSavingThrowsListList[-1])  # Add saving throws button
+            layout.addWidget(self.buttonsSkillsListList[-1])  # Add saving throws button
             layout.addWidget(self.buttonsFeatureListList[-1])  # Add features button
             layout.addWidget(self.buttonsSpellListList[-1])  # Add spell list button
             layout.addWidget(self.buttonsItemListList[-1])  # Add item list button
@@ -721,6 +825,24 @@ class MainWindow(QMainWindow):
         open_dice_action = QAction("Dice Roller", self)
         open_dice_action.triggered.connect(self.open_dice_window)
         tools_menu.addAction(open_dice_action)
+
+    def open_saving_throws_window(self, character):
+        name = getattr(character, "name", "Unknown")
+        if name not in self._saving_throws_windows:
+            self._saving_throws_windows[name] = SavingThrowsWindow(character, self)
+        win = self._saving_throws_windows[name]
+        win.show()
+        win.raise_()
+        win.activateWindow()
+
+    def open_skills_window(self, character):
+        name = getattr(character, "name", "Unknown")
+        if name not in self._skills_windows:
+            self._skills_windows[name] = SkillsWindow(character, self)
+        win = self._skills_windows[name]
+        win.show()
+        win.raise_()
+        win.activateWindow()
 
     def open_features_window(self, character):
         name = getattr(character, "name", "Unknown")

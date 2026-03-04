@@ -337,6 +337,7 @@ class ItemListWindow(QMainWindow):
     def __init__(self, character, parent=None):
         super().__init__(parent)
         self.character = character
+        self.main_window = parent  # reference to MainWindow for updating character state if needed
 
         char_name = getattr(character, "name", "Unknown")
         self.setWindowTitle(f"<span style='color:{GOLD};'>Inventory - {getattr(character, 'name', 'Unknown')}</span>")
@@ -387,24 +388,82 @@ class ItemListWindow(QMainWindow):
             # --- Equipped checkbox for weapons ---
             is_weapon = getattr(item, "damage", None) is not None
             if is_weapon:
-                atkbonus_string = str(character.get_ability_modifier(character.strength) + character.prof_bonus)
-                if len(getattr(item, "special", None)) > 0:
-                    atkbonus_string += getattr(item, "special", "")
-                    damage_str = item.damage['damage_dice'] + '+ ' + str(int(getattr(item, "special", "")) + character.get_ability_modifier(character.strength))
-                    for prop in item.properties:
-                        if "Finesse" in prop.values():
-                            atkbonus_string += " or " + str(character.get_ability_modifier(character.dexterity) + character.prof_bonus) + getattr(item, "special", "")
-                            damage_str += " or " + item.damage['damage_dice'] + '+ ' + str(int(getattr(item, "special", "")) + character.get_ability_modifier(character.dexterity))
-                else:
-                    damage_str = item.damage['damage_dice'] + '+ ' + str(character.get_ability_modifier(character.strength))
-                    for prop in item.properties:
-                        if "Finesse" in prop.values():
-                            atkbonus_string += " or " + str(character.get_ability_modifier(character.dexterity) + character.prof_bonus)
-                            damage_str += " or " + item.damage['damage_dice'] + '+ ' + str(character.get_ability_modifier(character.dexterity))
-                            break
+                # find index of this character in the main window's character list
+                characters = [Vesperis, Dagl, Dekland, Hrothgeirr, Leeroy]
+                try:
+                    char_idx = characters.index(self.character)
+                except ValueError:
+                    char_idx = None
+                # default atkbonus_string from STR if index not found
+                atkbonus_str_string = str(
+                    character.get_ability_modifier(character.strength) + character.prof_bonus
+                )
+                # default atkbonus_string from DEX if index not found
+                atkbonus_dex_string = str(
+                    character.get_ability_modifier(character.dexterity) + character.prof_bonus
+                )
+                
+                # if we found the character index, use the Dex attack bonus line edit value
+                str_widget = None
+                dex_widget = None
+                if (
+                    char_idx is not None
+                    and self.main_window is not None
+                    and 0 <= char_idx < len(self.main_window.labelsAndLineEditStrAttackBonusList)
+                    and 0 <= char_idx < len(self.main_window.labelsAndLineEditDexAttackBonusList)
+                ):
+                    str_widget = self.main_window.labelsAndLineEditStrAttackBonusList[char_idx]
+                    dex_widget = self.main_window.labelsAndLineEditDexAttackBonusList[char_idx]
 
-                atk_bonus_label = LabelandLineEdit("<span style='color:red;'>Atk Bonus: </span>", atkbonus_string)
-                damage_label = LabelandLineEdit("<span style='color:red;'>Damage: </span>", damage_str)
+                #     # LabelandLineEdit has .line_edit
+                #     str_bonus_text = str_widget.line_edit.text()
+                #     dex_bonus_text = dex_widget.line_edit.text()
+                #     if str_bonus_text:  # non-empty
+                #         atkbonus_str_string = str_bonus_text
+                #     if dex_bonus_text:  # non-empty
+                #         atkbonus_dex_string = dex_bonus_text
+
+                # if len(getattr(item, "special", "")) > 0:
+                #     atkbonus_str_string += getattr(item, "special", "")
+                #     atkbonus_dex_string += getattr(item, "special", "")
+                #     damage_str = (
+                #         item.damage['damage_dice'] + '+ '
+                #         + str(int(getattr(item, "special", "")) + character.get_ability_modifier(character.strength))
+                #     )
+                #     atkbonus_string = atkbonus_str_string
+                #     for prop in item.properties:
+                #         if "Finesse" in prop.values():
+                #             atkbonus_string = atkbonus_str_string + ' or ' + atkbonus_dex_string
+                #             damage_str += (
+                #                 " or "
+                #                 + item.damage['damage_dice'] + '+ '
+                #                 + str(int(getattr(item, "special", "")) + character.get_ability_modifier(character.dexterity))
+                #             )
+                # else:
+                #     damage_str = (
+                #         item.damage['damage_dice'] + '+ '
+                #         + str(character.get_ability_modifier(character.strength))
+                #     )
+                #     atkbonus_string = atkbonus_str_string
+                #     for prop in item.properties:
+                #         if "Finesse" in prop.values():
+                #             atkbonus_string += ' or ' + atkbonus_dex_string
+                #             damage_str += (
+                #                 " or "
+                #                 + item.damage['damage_dice'] + '+ '
+                #                 + str(character.get_ability_modifier(character.dexterity))
+                #             )
+                #             break
+                
+                # create labels but don't hard‑code the final text yet
+                atk_bonus_label = LabelandLineEdit(
+                    "<span style='color:red;'>Atk Bonus: </span>",
+                    "",
+                )
+                damage_label = LabelandLineEdit(
+                    "<span style='color:red;'>Damage: </span>",
+                    "",
+                )
                 atk_bonus_label.setVisible(False)
                 item_layout.addWidget(atk_bonus_label)
                 damage_label.setVisible(False)
@@ -415,17 +474,107 @@ class ItemListWindow(QMainWindow):
                 item_layout.addWidget(equipped_checkbox)
                 equipped_checkbox.toggled.connect(self.on_equipped_changed)
 
-            # toggle both description and checkbox with the button
-            def toggle_item_widgets(checked, lbl=desc_label, atk=atk_bonus_label, dam=damage_label, cb=equipped_checkbox):
+            # helper to recompute texts using CURRENT line edit values
+            def update_atk_and_damage(
+                it=item,
+                atk_label=atk_bonus_label,
+                dmg_label=damage_label,
+                str_w=str_widget,
+                dex_w=dex_widget,
+                ch=character,
+            ):
+                # STR attack bonus: prefer STR line edit if present
+                if str_w is not None:
+                    atkbonus_str_string = str_w.line_edit.text() or str(
+                        ch.get_ability_modifier(ch.strength) + ch.prof_bonus
+                    )
+                else:
+                    atkbonus_str_string = str(
+                        ch.get_ability_modifier(ch.strength) + ch.prof_bonus
+                    )
+
+                # DEX attack bonus: prefer DEX line edit if present
+                if dex_w is not None:
+                    atkbonus_dex_string = dex_w.line_edit.text() or str(
+                        ch.get_ability_modifier(ch.dexterity) + ch.prof_bonus
+                    )
+                else:
+                    atkbonus_dex_string = str(
+                        ch.get_ability_modifier(ch.dexterity) + ch.prof_bonus
+                    )
+
+                # base strings
+                if len(getattr(it, "special", "")) > 0:
+                    atkbonus_string = (
+                        atkbonus_str_string + getattr(it, "special", "")
+                    )
+                    damage_str = (
+                        it.damage["damage_dice"]
+                        + "+ "
+                        + str(
+                            int(getattr(it, "special", ""))
+                            + ch.get_ability_modifier(ch.strength)
+                        )
+                    )
+                    for prop in it.properties:
+                        if "Finesse" in prop.values():
+                            atkbonus_string += (
+                                " or "
+                                + atkbonus_dex_string
+                                + getattr(it, "special", "")
+                            )
+                            damage_str += (
+                                " or "
+                                + it.damage["damage_dice"]
+                                + "+ "
+                                + str(
+                                    int(getattr(it, "special", ""))
+                                    + ch.get_ability_modifier(ch.dexterity)
+                                )
+                            )
+                            break
+                else:
+                    atkbonus_string = atkbonus_str_string
+                    damage_str = (
+                        it.damage["damage_dice"]
+                        + "+ "
+                        + str(ch.get_ability_modifier(ch.strength))
+                    )
+                    for prop in it.properties:
+                        if "Finesse" in prop.values():
+                            atkbonus_string += " or " + atkbonus_dex_string
+                            damage_str += (
+                                " or "
+                                + it.damage["damage_dice"]
+                                + "+ "
+                                + str(ch.get_ability_modifier(ch.dexterity))
+                            )
+                            break
+
+                atk_label.editLine(atkbonus_string)
+                dmg_label.editLine(damage_str)
+
+            # toggle desc/labels/checkbox and refresh values when button is clicked
+            def toggle_item_widgets(
+                checked,
+                lbl=desc_label,
+                atk_label=atk_bonus_label,
+                dmg_label=damage_label,
+                cb=equipped_checkbox,
+            ):
                 lbl.setVisible(checked)
-                atk.setVisible(checked)
-                dam.setVisible(checked)
+                atk_label.setVisible(checked)
+                dmg_label.setVisible(checked)
                 if cb is not None:
                     cb.setVisible(checked)
+                    if checked:
+                        update_atk_and_damage()            
             
             btn.toggled.connect(toggle_item_widgets)
                 
             scroll_layout.addWidget(item_container)
+            if is_weapon:
+                update_atk_and_damage()  # initial update because line edits already have values
         
         # magic items header
         magic_items_label = QLabel(
@@ -479,8 +628,10 @@ class ItemListWindow(QMainWindow):
             for other_checkbox in self.itemsEquippedCheckboxes:
                 if other_checkbox.isChecked() and other_checkbox != self.sender():
                     other_checkbox.setChecked(False)
-        
-                    # Here you would also update the character's state to reflect the change in equipment
+    
+    def refresh_atk_and_damage(self):
+        for item in getattr(self.character, "inventory", []):
+            update_atk_and_damage(item)
 
 class SpellListWindow(QMainWindow):
     def __init__(self, character, parent=None):

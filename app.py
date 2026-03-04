@@ -1,4 +1,5 @@
 import sys
+from pprint import pprint
 
 from PyQt5.QtCore import QFile, QFile, QTextStream, QSize, Qt
 # from PyQt5.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QPushButton, QLabel, QLineEdit, QVBoxLayout, QWidget
@@ -383,10 +384,31 @@ class ItemListWindow(QMainWindow):
 
             item_layout.addWidget(btn)
             item_layout.addWidget(desc_label)
-
             # --- Equipped checkbox for weapons ---
             is_weapon = getattr(item, "damage", None) is not None
             if is_weapon:
+                atkbonus_string = str(character.get_ability_modifier(character.strength) + character.prof_bonus)
+                if len(getattr(item, "special", None)) > 0:
+                    atkbonus_string += getattr(item, "special", "")
+                    damage_str = item.damage['damage_dice'] + '+ ' + str(int(getattr(item, "special", "")) + character.get_ability_modifier(character.strength))
+                    for prop in item.properties:
+                        if "Finesse" in prop.values():
+                            atkbonus_string += " or " + str(character.get_ability_modifier(character.dexterity) + character.prof_bonus) + getattr(item, "special", "")
+                            damage_str += " or " + item.damage['damage_dice'] + '+ ' + str(int(getattr(item, "special", "")) + character.get_ability_modifier(character.dexterity))
+                else:
+                    damage_str = item.damage['damage_dice'] + '+ ' + str(character.get_ability_modifier(character.strength))
+                    for prop in item.properties:
+                        if "Finesse" in prop.values():
+                            atkbonus_string += " or " + str(character.get_ability_modifier(character.dexterity) + character.prof_bonus)
+                            damage_str += " or " + item.damage['damage_dice'] + '+ ' + str(character.get_ability_modifier(character.dexterity))
+                            break
+
+                atk_bonus_label = LabelandLineEdit("<span style='color:red;'>Atk Bonus: </span>", atkbonus_string)
+                damage_label = LabelandLineEdit("<span style='color:red;'>Damage: </span>", damage_str)
+                atk_bonus_label.setVisible(False)
+                item_layout.addWidget(atk_bonus_label)
+                damage_label.setVisible(False)
+                item_layout.addWidget(damage_label)
                 equipped_checkbox = QCheckBox("Equipped")
                 equipped_checkbox.setVisible(False)  # hidden until expanded
                 self.itemsEquippedCheckboxes.append(equipped_checkbox)  # Add to the list of checkboxes
@@ -394,8 +416,10 @@ class ItemListWindow(QMainWindow):
                 equipped_checkbox.toggled.connect(self.on_equipped_changed)
 
             # toggle both description and checkbox with the button
-            def toggle_item_widgets(checked, lbl=desc_label, cb=equipped_checkbox):
+            def toggle_item_widgets(checked, lbl=desc_label, atk=atk_bonus_label, dam=damage_label, cb=equipped_checkbox):
                 lbl.setVisible(checked)
+                atk.setVisible(checked)
+                dam.setVisible(checked)
                 if cb is not None:
                     cb.setVisible(checked)
             

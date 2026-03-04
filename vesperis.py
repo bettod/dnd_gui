@@ -50,9 +50,9 @@ for iii in range(len(Vesperis.inventory)):
      _ = Vesperis.inventory.pop()   # remove all items
 Vesperis.give_item('warhammer')
 Vesperis.inventory[0].name = 'Warhammer+1'
-Vesperis.inventory[0].damage['damage_dice'] = '1d8+1'
-Vesperis.inventory[0].two_handed_damage['damage_dice'] = '1d10+1'
-Vesperis.inventory[0].special = '+1 weapon'
+Vesperis.inventory[0].damage['damage_dice'] = '1d8'
+Vesperis.inventory[0].two_handed_damage['damage_dice'] = '1d10'
+Vesperis.inventory[0].special = '+1'
 
 Vesperis.give_item('dagger')
 

@@ -32,13 +32,13 @@ for iii in range(len(Hrothgeirr.inventory)):
      _ = Hrothgeirr.inventory.pop()   # remove all items
 Hrothgeirr.give_item('battleaxe')
 Hrothgeirr.inventory[0].name = 'Axe of the lightning'
-Hrothgeirr.inventory[0].damage['damage_dice'] = '1d6+1'
-Hrothgeirr.inventory[0].two_handed_damage['damage_dice'] = '1d10+1'
-Hrothgeirr.inventory[0].special = '+1 weapon'
+Hrothgeirr.inventory[0].damage['damage_dice'] = '1d6'
+Hrothgeirr.inventory[0].two_handed_damage['damage_dice'] = '1d10'
+Hrothgeirr.inventory[0].special = '+1'
 Hrothgeirr.give_item('greataxe')
 Hrothgeirr.inventory[-1].name = 'Great Axe of the Angry Dane'
-Hrothgeirr.inventory[-1].damage['damage_dice'] = '1d12+1'
-Hrothgeirr.inventory[-1].special = '+1 weapon'
+Hrothgeirr.inventory[-1].damage['damage_dice'] = '1d12'
+Hrothgeirr.inventory[-1].special = '+1'
 
 Hrothgeirr.give_item('spear')
 Hrothgeirr.give_item('javelin')

@@ -2,7 +2,7 @@ import sys
 
 from PyQt5.QtCore import QFile, QFile, QTextStream, QSize, Qt
 # from PyQt5.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QPushButton, QLabel, QLineEdit, QVBoxLayout, QWidget
-from PyQt5.QtGui import QPalette, QColor
+from PyQt5.QtGui import QPalette, QColor, QIntValidator
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -73,6 +73,10 @@ class LabelandLineEdit(QWidget):
 
         self.label = QLabel(label_text)
         self.line_edit = QLineEdit(line_edit_text)
+
+         # Only allow integers between, e.g., 0 and 9999
+        int_validator = QIntValidator(0, 9999, self)
+        self.line_edit.setValidator(int_validator)
 
         layout = QHBoxLayout()
         layout.addWidget(self.label)
@@ -349,6 +353,7 @@ class ItemListWindow(QMainWindow):
         items = getattr(character, "inventory", [])
         magic_items = getattr(character, "magicinventory", [])
 
+        self.itemsEquippedCheckboxes = [] # New list for equipped checkboxes
 
         for item in items:
             # ITEMS object
@@ -383,7 +388,19 @@ class ItemListWindow(QMainWindow):
             is_weapon = getattr(item, "damage", None) is not None
             if is_weapon:
                 equipped_checkbox = QCheckBox("Equipped")
+                equipped_checkbox.setVisible(False)  # hidden until expanded
+                self.itemsEquippedCheckboxes.append(equipped_checkbox)  # Add to the list of checkboxes
+                item_layout.addWidget(equipped_checkbox)
+                equipped_checkbox.toggled.connect(self.on_equipped_changed)
 
+            # toggle both description and checkbox with the button
+            def toggle_item_widgets(checked, lbl=desc_label, cb=equipped_checkbox):
+                lbl.setVisible(checked)
+                if cb is not None:
+                    cb.setVisible(checked)
+            
+            btn.toggled.connect(toggle_item_widgets)
+                
             scroll_layout.addWidget(item_container)
         
         # magic items header
@@ -431,6 +448,15 @@ class ItemListWindow(QMainWindow):
         main_layout.addWidget(scroll)
         central.setLayout(main_layout)
         self.setCentralWidget(central)
+
+    def on_equipped_changed(self, checked):
+        # If this weapon is now equipped in main hand, unpdate character stats and uncheck any other equipped weapon checkboxes
+        if checked:
+            for other_checkbox in self.itemsEquippedCheckboxes:
+                if other_checkbox.isChecked() and other_checkbox != self.sender():
+                    other_checkbox.setChecked(False)
+        
+                    # Here you would also update the character's state to reflect the change in equipment
 
 class SpellListWindow(QMainWindow):
     def __init__(self, character, parent=None):
@@ -626,8 +652,8 @@ class MainWindow(QMainWindow):
 
             # Speed label
             speed_widget = LabelandLineEdit(
-                f"<span style='color:green;'>Speed: </span>",
-                f"{getattr(character, 'speed', 'N/A')} feet"
+                f"<span style='color:green;'>Speed: (feet) </span>",
+                f"{getattr(character, 'speed', 'N/A')}"
             )
             speed_widget.label.setFixedWidth(FIXED_WIDTH)
             speed_widget.line_edit.setFixedWidth(FIXED_WIDTH)

@@ -264,7 +264,7 @@ class SavingThrowsWindow(QMainWindow):
 
         char_name = getattr(character, "name", "Unknown")
         self.setWindowTitle(f"Saving Throws - {char_name}")
-        self.resize(200, 200)
+        self.resize(300, 200)
 
         central = QWidget()
         main_layout = QVBoxLayout()
@@ -302,7 +302,7 @@ class SkillsWindow(QMainWindow):
 
         char_name = getattr(character, "name", "Unknown")
         self.setWindowTitle(f"Skills - {char_name}")
-        self.resize(200, 400)
+        self.resize(300, 400)
 
         central = QWidget()
         main_layout = QVBoxLayout()
@@ -369,6 +369,8 @@ class ItemListWindow(QMainWindow):
 
             item_container = QWidget()
             item_layout = QVBoxLayout()
+            item_layout.setContentsMargins(0,0,0,0)
+            item_layout.setSpacing(20)
             item_container.setLayout(item_layout)
 
             btn = QPushButton(item_name)
@@ -581,6 +583,8 @@ class ItemListWindow(QMainWindow):
 
             item_container = QWidget()
             item_layout = QVBoxLayout()
+            item_layout.setContentsMargins(0,0,0,0)
+            item_layout.setSpacing(20)
             item_container.setLayout(item_layout)
 
             btn = QPushButton(item_name)
@@ -614,9 +618,102 @@ class ItemListWindow(QMainWindow):
                 if other_checkbox.isChecked() and other_checkbox != self.sender():
                     other_checkbox.setChecked(False)
     
-    def refresh_atk_and_damage(self):
-        for item in getattr(self.character, "inventory", []):
-            update_atk_and_damage(item)
+class SpellsByLevelWindow(QMainWindow):
+    """Display all spells from SRD_spells, grouped by level."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(f"Spells By Level")
+        self.resize(800, 800)
+
+        central = QWidget()
+        main_layout = QVBoxLayout()
+
+        # Search bar
+        self.search_edit = QLineEdit()
+        self.search_edit.setPlaceholderText("Search spells by name or description...")
+        self.search_edit.textChanged.connect(self.filter_spells)
+        main_layout.addWidget(self.search_edit)
+
+        # Scroll area for spells list
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+
+        # Initialize list to hold all spell data for filtering
+        self.all_spell_data = []  # list of (container, name, desc)
+
+        # Group spells by level
+        spells_by_level = {}
+        for spell_id in SRD_spells:
+            spell_data = SRD_spells[spell_id]
+            level = spell_data.get('level', 0)
+            spells_by_level.setdefault(level, []).append(spell_data)
+
+        # Sort each level's spells by name
+        for level in spells_by_level:
+            spells_by_level[level].sort(key=lambda s: s.get('name', 'Unknown'))
+
+        # Display spells by level
+        for level in sorted(spells_by_level.keys()):
+            # Level header button
+            lvl_btn = QPushButton(f"Level {level} Spells")
+            lvl_btn.setStyleSheet(f"color: {GOLD};")
+            lvl_btn.setCheckable(True)
+            lvl_btn.setChecked(False)
+            scroll_layout.addWidget(lvl_btn)
+
+            # List to hold spell containers for this level
+            level_spell_containers = []
+
+            # Display each spell in this level
+            for spell_data in spells_by_level[level]:
+                spell_name = spell_data.get('name', 'Unknown Spell')
+                spell_desc = spell_data.get('desc', ['No description available.'])
+                if isinstance(spell_desc, list):
+                    spell_desc = '\n'.join(spell_desc)
+
+                spell_container = QWidget()
+                spell_layout = QVBoxLayout()
+                spell_layout.setContentsMargins(0,0,0,0)
+                spell_layout.setSpacing(20)
+                spell_container.setLayout(spell_layout)
+
+                btn = QPushButton(spell_name)
+                btn.setStyleSheet(f"color: {ORANGE};")
+                btn.setCheckable(True)
+
+                html_desc = format_str_html(show_spell(spell_name))
+                desc_label = QLabel(html_desc)
+                desc_label.setWordWrap(True)
+                desc_label.setVisible(False)
+
+                btn.toggled.connect(lambda checked, lbl=desc_label: lbl.setVisible(checked))
+
+                spell_layout.addWidget(btn)
+                spell_layout.addWidget(desc_label)
+                scroll_layout.addWidget(spell_container)
+                level_spell_containers.append(spell_container)
+                self.all_spell_data.append((spell_container, spell_name, spell_desc))
+                spell_container.setVisible(False)  # start hidden until level button toggled
+
+            # Connect level button to toggle all spells in this level
+            lvl_btn.toggled.connect(lambda checked, containers=level_spell_containers: 
+                [c.setVisible(checked) for c in containers])
+
+        scroll_layout.addStretch(1)
+        scroll_widget.setLayout(scroll_layout)
+        scroll.setWidget(scroll_widget)
+
+        main_layout.addWidget(scroll)
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+
+    def filter_spells(self, text):
+        text = text.lower()
+        for container, name, desc in self.all_spell_data:
+            visible = text in name.lower() or text in desc.lower()
+            container.setVisible(visible)
 
 class SpellListWindow(QMainWindow):
     def __init__(self, character, parent=None):
@@ -665,6 +762,8 @@ class SpellListWindow(QMainWindow):
             # Container for each cantrip
             spell_container = QWidget()
             spell_layout = QVBoxLayout()
+            spell_layout.setContentsMargins(0,0,0,0)
+            spell_layout.setSpacing(20)
             spell_container.setLayout(spell_layout)
 
             btn = QPushButton(spell_name)
@@ -709,6 +808,8 @@ class SpellListWindow(QMainWindow):
 
                 spell_container = QWidget()
                 spell_layout = QVBoxLayout()
+                spell_layout.setContentsMargins(0,0,0,0)
+                spell_layout.setSpacing(20)
                 spell_container.setLayout(spell_layout)
 
                 btn = QPushButton(spell_name)
@@ -741,6 +842,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle(f"<span style='color:{GOLD};'>DND game manager</span>")
+        
         # Force the style to be the same on all OSs:
         app.setStyle("Fusion")
 
@@ -1008,16 +1110,35 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(container)
 
         self._dice_window = None
+        self._spells_by_level_window = None
         self._create_menu()
 
     def _create_menu(self):
         menubar = self.menuBar()
-        # Use existing menu or create a new one
+        # Tools menu (existing)
         tools_menu = menubar.addMenu("Tools")
 
         open_dice_action = QAction("Dice Roller", self)
         open_dice_action.triggered.connect(self.open_dice_window)
         tools_menu.addAction(open_dice_action)
+
+        # New: Lists menu (no actions wired yet)
+        lists_menu = menubar.addMenu("Lists")
+        
+        spells_by_level_action = QAction("Spell List by Level", self)
+        spells_by_level_action.triggered.connect(self.open_spells_by_level_window)
+        lists_menu.addAction(spells_by_level_action)
+        # You can add actions later if you decide how to pick a character:
+        # example (commented out intentionally, because no character passed):
+        # spells_action = QAction("Spells", self)
+        # lists_menu.addAction(spells_action)
+
+        # New: Rules menu (no character info needed)
+        rules_menu = menubar.addMenu("Rules")
+
+        open_rules_action = QAction("Show Rules (console)", self)
+        open_rules_action.triggered.connect(show_rules)  # uses your existing function
+        rules_menu.addAction(open_rules_action)
 
     def open_saving_throws_window(self, character):
         name = getattr(character, "name", "Unknown")
@@ -1052,6 +1173,13 @@ class MainWindow(QMainWindow):
         self._dice_window.show()
         self._dice_window.raise_()
         self._dice_window.activateWindow()
+
+    def open_spells_by_level_window(self):
+        if self._spells_by_level_window is None:
+            self._spells_by_level_window = SpellsByLevelWindow(self)
+        self._spells_by_level_window.show()
+        self._spells_by_level_window.raise_()
+        self._spells_by_level_window.activateWindow()
 
     def open_item_list_window(self, character):
         name = getattr(character, "name", "Unknown")

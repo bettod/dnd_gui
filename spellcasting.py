@@ -74,47 +74,46 @@ class _SPELL:
 
     def __str__(self) -> str:
         output = ""
-        output += colored(f"Name: ", 'green') + colored(f"{self.name}\n", 'red')
-        output += colored(f"Level: ", 'green') + colored(f"{str(self.level)}\n", 'white')
-        output += colored(f"School: ", 'green') + f"{str(self.school['name'])}\n"
-        output += colored(f"Classes: ", 'green')
+        output += f"<span style='color:green;'>School: </span>{str(self.school['name'])}\n"
+        output += f"<span style='color:green;'>Classes: </span>"
         for item in self.classes:
-            output += colored(f"{item['name']}: ", 'cyan')
+            output += f"<span style='color:cyan;'>{item['name']}: </span>"
         output += f"\n"
-        output += colored(f"Components:", 'green') + f"\t{', '.join([item for item in self.components])}\n"
+        output += f"<span style='color:green;'>Components:</span> {', '.join([item for item in self.components])}\n"
         if self.material:
-            output += colored(f"\tMaterial: ", 'yellow') + colored(f"{self.material}\n", 'white')   
-        output += colored(f"Casting Time: ", 'green') + colored(f"{self.casting_time}\n", 'white')
-        output += colored(f"Duration: ", 'green') + colored(f"{self.duration}\n", 'white')
+            output += f"<span style='color:yellow;'>\tMaterial: </span><span style='color:white;'>{self.material}</span>\n"
+        output += f"<span style='color:green;'>Casting Time: </span><span style='color:white;'>{self.casting_time}</span>\n"
+        output += f"<span style='color:green;'>Duration: </span><span style='color:white;'>{self.duration}</span>\n"
         if self.concentration:
-            output += colored(f"Concentration: TRUE ", 'yellow')
+            output += f"<span style='color:yellow;'>Concentration: TRUE </span>"
         if self.ritual:
-            output += colored(f"Ritual: TRUE ", 'yellow')
-        output += colored(f"Range:", 'green') + f"\t{self.range}\n"
+            output += f"<span style='color:yellow;'>Ritual: TRUE </span>"
+        output += f"<span style='color:green;'>Range:</span> {self.range}\n"
         if self.area_of_effect:
-            output += colored(f"Area of Effect: ", 'green')
+            output += f"<span style='color:green;'>Area of Effect: </span>"
             for key in self.area_of_effect:
-                output += colored(f"{key}: ", 'cyan') + f"{str(self.area_of_effect[key])}, "
+                output += f"<span style='color:cyan;'>{key}: </span>{str(self.area_of_effect[key])}, "
             output += f"\n"
         if self.attack_type:
-            output += colored(f"Attack Type: ", 'green') + colored(f"{self.attack_type}\n", 'white')
+            output += f"<span style='color:green;'>Attack Type: </span><span style='color:white;'>{self.attack_type}</span>\n"
         if self.damage:
-            output += colored(f"Damage: ", 'green')
-            output += colored(f"\tDamage Type: ", 'yellow') + f"{str(self.damage['damage_type']['name'])}, "
+            output += f"<span style='color:green;'>Damage: </span>"
+            if 'damage_type' in self.damage.keys():
+                output += f"<span style='color:yellow;'>\tDamage Type: </span><span style='color:white;'>{str(self.damage['damage_type']['name'])}</span>, "
             if self.level == 0:
-                output += colored(f"\tDamage at Char Level: ", 'yellow') + f"{str(self.damage['damage_at_character_level'])}, "
+                output += f"<span style='color:yellow;'>\tDamage at Char Level: </span><span style='color:white;'>{str(self.damage['damage_at_character_level'])}</span>, "
             else:
-                output += colored(f"\tDamage at Slot Level: ", 'yellow') + f"{str(self.damage['damage_at_slot_level'])}, "
+                output += f"<span style='color:yellow;'>\tDamage at Slot Level: </span><span style='color:white;'>{str(self.damage['damage_at_slot_level'])}</span>, "
             output += f"\n"
         if self.dc:
-            output += colored(f"DC: ", 'green')
-            output += colored(f"\tType: ", 'yellow') + f"{str(self.dc['dc_type']['name'])}, "
-            output += colored(f"\tSuccess: ", 'yellow') + f"{str(self.dc['dc_success'])}, "
+            output += f"<span style='color:green;'>DC: </span>"
+            output += f"<span style='color:yellow;'>\tType: </span><span style='color:white;'>{str(self.dc['dc_type']['name'])}</span>, "
+            output += f"<span style='color:yellow;'>\tSuccess: </span><span style='color:white;'>{str(self.dc['dc_success'])}</span>, "
             output += f"\n"
         if self.heal_at_slot_level:
-            output += colored(f"Heat at Slot Level:", 'green') + f"\t{', '.join([item for item in self.heal_at_slot_level])}\n"
-        output += colored(f"Description: ", 'green') + colored(f"{self.desc}\n", 'white')
-        output += colored(f"Higher Level: ", 'green') + colored(f"{self.higher_level}\n", 'white')
+            output += f"<span style='color:green;'>Heal at Slot Level: </span><span style='color:white;'>{', '.join([item for item in self.heal_at_slot_level])}</span>\n"
+        output += f"<span style='color:green;'>Description: </span><span style='color:white;'>{self.desc}</span>\n"
+        output += f"<span style='color:green;'>Higher Level: </span><span style='color:white;'>{self.higher_level}</span>\n"
         return output
 
 
@@ -189,7 +188,7 @@ def show_spell_list() -> None:
     Print the list of spells
     """
     for key in SRD_spells:
-        print(colored(SRD_spells[key]['name'], 'red') + ':\tLevel = ' + str(SRD_spells[key]['level']))
+        print(f"<span style='color:red;'>{SRD_spells[key]['name']}</span>:\tLevel = {SRD_spells[key]['level']}")
 
 def show_spells_by_class_level(classs: str, level: int) -> None:
     """
@@ -199,10 +198,11 @@ def show_spells_by_class_level(classs: str, level: int) -> None:
         if SRD_spells[key]['level'] == level:
             for item in SRD_spells[key]['classes']:
                 if classs.lower() == item['name'].lower():
-                    print(SRD_spells[key]['name'])
+                    print(f"<span style='color:red;'>{SRD_spells[key]['name']}</span>")
 
 def show_spell(spell: str) -> None:
     """
     Print details of a spell
     """
-    print(str(Spell(spell.lower().replace(' ', '-'))))
+    # print(str(Spell(spell.lower().replace(' ', '-').replace("'", '').replace("/", '-'))))
+    return str(Spell(spell.lower().replace(' ', '-').replace("'", '').replace("/", '-')))

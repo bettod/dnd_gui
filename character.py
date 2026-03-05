@@ -958,10 +958,10 @@ class Character:
         )
 
     def prepare_spell(self, name: str) -> None:
-        self.spells_prepared.append(SPELLS[name.lower().replace(' ', '-')])
+        self.spells_prepared.append(SPELLS[name.lower().replace(' ', '-').replace("'", '').replace("/", '-')])
 
     def remove_spell(self, name: str) -> None:
-        self.spells_prepared.remove(SPELLS[name.lower().replace(' ', '-')])
+        self.spells_prepared.remove(SPELLS[name.lower().replace(' ', '-').replace("'", '').replace("/", '-')])
 
     @property
     def inventory(self) -> list[_Item]:

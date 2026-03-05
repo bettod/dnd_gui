@@ -715,6 +715,102 @@ class SpellsByLevelWindow(QMainWindow):
             visible = text in name.lower() or text in desc.lower()
             container.setVisible(visible)
 
+class MonstersByCRWindow(QMainWindow):
+    """Display all monsters from SRD_monsters, grouped by challenge rating."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(f"Monsters By CR")
+        self.resize(800, 800)
+
+        central = QWidget()
+        main_layout = QVBoxLayout()
+
+        # Search bar
+        self.search_edit = QLineEdit()
+        self.search_edit.setPlaceholderText("Search monsters by name or description...")
+        self.search_edit.textChanged.connect(self.filter_monsters)
+        main_layout.addWidget(self.search_edit)
+
+        # Scroll area for monsters list
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+
+        # Initialize list to hold all monster data for filtering
+        self.all_monster_data = []  # list of (container, name, desc)
+
+        # Group monsters by CR
+        monsters_by_cr = {}
+        for monster_id in SRD_monsters:
+            monster_data = SRD_monsters[monster_id]
+            cr = monster_data.get('challenge_rating', 0)
+            monsters_by_cr.setdefault(cr, []).append(monster_data)
+
+        # Sort each CR's monsters by name
+        for cr in monsters_by_cr:
+            monsters_by_cr[cr].sort(key=lambda m: m.get('name', 'Unknown'))
+
+        # Display monsters by CR
+        for cr in sorted(monsters_by_cr.keys()):
+            # CR header button
+            cr_btn = QPushButton(f"CR {cr} Monsters")
+            cr_btn.setStyleSheet(f"color: {GOLD};")
+            cr_btn.setCheckable(True)
+            cr_btn.setChecked(True)  # Start expanded
+            scroll_layout.addWidget(cr_btn)
+
+            # List to hold monster containers for this CR
+            cr_monster_containers = []
+
+            # Display each monster in this CR
+            for monster_data in monsters_by_cr[cr]:
+                monster_name = monster_data.get('name', 'Unknown Monster')
+                monster_index = monster_data.get('index', 'Unknown Monster')
+                monster_desc = monster_data.get('desc', 'No description available.')
+
+                monster_container = QWidget()
+                monster_layout = QVBoxLayout()
+                monster_layout.setContentsMargins(0,0,0,0)
+                monster_layout.setSpacing(20)
+                monster_container.setLayout(monster_layout)
+
+                btn = QPushButton(monster_name)
+                btn.setStyleSheet(f"color: {ORANGE};")
+                btn.setCheckable(True)
+
+                html_desc = format_str_html(show_monster(monster_index))
+                desc_label = QLabel(html_desc)
+                desc_label.setWordWrap(True)
+                desc_label.setVisible(False)
+
+                btn.toggled.connect(lambda checked, lbl=desc_label: lbl.setVisible(checked))
+
+                monster_layout.addWidget(btn)
+                monster_layout.addWidget(desc_label)
+                scroll_layout.addWidget(monster_container)
+                cr_monster_containers.append(monster_container)
+                self.all_monster_data.append((monster_container, monster_name, monster_desc))
+                monster_container.setVisible(False)  # start hidden until CR button toggled
+
+            # Connect CR button to toggle all monsters in this CR
+            cr_btn.toggled.connect(lambda checked, containers=cr_monster_containers: 
+                [c.setVisible(checked) for c in containers])
+
+        scroll_layout.addStretch(1)
+        scroll_widget.setLayout(scroll_layout)
+        scroll.setWidget(scroll_widget)
+
+        main_layout.addWidget(scroll)
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+
+    def filter_monsters(self, text):
+        text = text.lower()
+        for container, name, desc in self.all_monster_data:
+            visible = text in name.lower() or text in desc.lower()
+            container.setVisible(visible)
+
 class SpellListWindow(QMainWindow):
     def __init__(self, character, parent=None):
         super().__init__(parent)
@@ -1111,6 +1207,7 @@ class MainWindow(QMainWindow):
 
         self._dice_window = None
         self._spells_by_level_window = None
+        self._monsters_by_cr_window = None
         self._create_menu()
 
     def _create_menu(self):
@@ -1128,6 +1225,11 @@ class MainWindow(QMainWindow):
         spells_by_level_action = QAction("Spell List by Level", self)
         spells_by_level_action.triggered.connect(self.open_spells_by_level_window)
         lists_menu.addAction(spells_by_level_action)
+
+        monsters_by_cr_action = QAction("Monster List by CR", self)
+        monsters_by_cr_action.triggered.connect(self.open_monsters_by_cr_window)
+        lists_menu.addAction(monsters_by_cr_action)
+
         # You can add actions later if you decide how to pick a character:
         # example (commented out intentionally, because no character passed):
         # spells_action = QAction("Spells", self)
@@ -1180,6 +1282,13 @@ class MainWindow(QMainWindow):
         self._spells_by_level_window.show()
         self._spells_by_level_window.raise_()
         self._spells_by_level_window.activateWindow()
+
+    def open_monsters_by_cr_window(self):
+        if self._monsters_by_cr_window is None:
+            self._monsters_by_cr_window = MonstersByCRWindow(self)
+        self._monsters_by_cr_window.show()
+        self._monsters_by_cr_window.raise_()
+        self._monsters_by_cr_window.activateWindow()
 
     def open_item_list_window(self, character):
         name = getattr(character, "name", "Unknown")

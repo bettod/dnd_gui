@@ -59,44 +59,43 @@ class _Monster:
 
     def __str__(self) -> str:
         output = ""
-        output += colored(f"Name: ", 'green') + colored(f"{self.name}\n", 'red')
-        output += colored(f"Size: ", 'green') + colored(f"{self.size}\n", 'white')
-        output += colored(f"Speed: ", 'green')
+        output += f"<span style='color:green;'>Size: </span>" + f"<span style='color:white;'>{self.size}\n</span>"
+        output += f"<span style='color:green;'>Speed: </span>"
         for key in self.speed:
-            output += colored(f"{key}: ", 'cyan') + f"{str(self.speed[key])}, "
+            output += f"<span style='color:cyan;'>{key}: </span>" + f"{str(self.speed[key])}, "
         output += f"\n"
-        output += colored(f"Aligment: ", 'green') + colored(f"{self.alignment}\n", 'white')
-        output += colored(f"Hit Points: ", 'green') + colored(f"{str(self.hit_points)}\n", 'white')
-        output += colored(f"Armor Class: ", 'green') + colored(f"{str(self.armor_class[0]['value'])}, ", 'white')  + colored(f"{str(self.armor_class[0]['type'])}\n", 'white')
+        output += f"<span style='color:green;'>Alignment: </span>" + f"<span style='color:white;'>{self.alignment}\n</span>"
+        output += f"<span style='color:green;'>Hit Points: </span>" + f"<span style='color:white;'>{str(self.hit_points)}\n</span>"
+        output += f"<span style='color:green;'>Armor Class: </span>" + f"<span style='color:white;'>{str(self.armor_class[0]['value'])}, </span>" + f"<span style='color:white;'>{str(self.armor_class[0]['type'])}\n</span>"
         if self.desc:
-            output += colored(f"Description: ", 'green') + colored(f"{self.desc}\n", 'white')
-        output += colored(f"Challenge Rating: ", 'green') + colored(f"{str(self.challenge_rating)}\n", 'white')
-        output += colored(f"Senses:\n", 'green')
+            output += f"<span style='color:green;'>Description: </span>" + f"<span style='color:white;'>{self.desc}\n</span>"
+        output += f"<span style='color:green;'>Challenge Rating: </span>" + f"<span style='color:white;'>{str(self.challenge_rating)}\n</span>"
+        output += f"<span style='color:green;'>Senses:\n</span>"
         for key in self.senses:
-            output += colored(f"\t{key}: ", 'cyan') + f"{str(self.senses[key])}\n"
-        output += colored(f"Actions:\n", 'green')
+            output += f"<span style='color:cyan;'>\t{key}: </span>" + f"{str(self.senses[key])}\n"
+        output += f"<span style='color:green;'>Actions:\n</span>"
         for value in self.actions:
-            output += colored(f"\t{value['name']}: ", 'cyan') + f"{value['desc']}\n"
+            output += f"<span style='color:cyan;'>\t{value['name']}: </span>" + f"{value['desc']}\n"
         if self.reactions:
-            output += colored(f"Reactions:\n", 'green')
+            output += f"<span style='color:green;'>Reactions:\n</span>"
             for value in self.reactions:
-                output += colored(f"\t{value['name']}: ", 'cyan') + f"{value['desc']}\n"
+                output += f"<span style='color:cyan;'>\t{value['name']}: </span>" + f"{value['desc']}\n"
         if self.damage_resistances:
-            output += colored(f"Damage Resistances:", 'green') + f"\t{', '.join([item for item in self.damage_resistances])}\n"
+            output += f"<span style='color:green;'>Damage Resistances:</span>" + f"\t{', '.join([item for item in self.damage_resistances])}\n"
         if self.damage_immunities:
-            output += colored(f"Damage Immunities:", 'green') + f"\t{', '.join([item for item in self.damage_immunities])}\n"
+            output += f"<span style='color:green;'>Damage Immunities:</span>" + f"\t{', '.join([item for item in self.damage_immunities])}\n"
         if self.damage_vulnerabilities:
-            output += colored(f"Damage Vulnerabilities:", 'green') + f"\t{', '.join([item for item in self.damage_vulnerabilities])}\n"
+            output += f"<span style='color:green;'>Damage Vulnerabilities:</span>" + f"\t{', '.join([item for item in self.damage_vulnerabilities])}\n"
         if self.condition_immunities:
-            output += colored(f"Condition immunities:", 'green') + f"\t{', '.join([item['name'] for item in self.condition_immunities])}\n"
+            output += f"<span style='color:green;'>Condition immunities:</span>" + f"\t{', '.join([item['name'] for item in self.condition_immunities])}\n"
         if self.special_abilities:
-            output += colored(f"Special Abilities:\n", 'green')
+            output += f"<span style='color:green;'>Special Abilities:\n</span>"
             for value in self.special_abilities:
-                output += colored(f"\t{value['name']}: ", 'cyan') + f"{value['desc']}\n"
+                output += f"<span style='color:cyan;'>\t{value['name']}: </span>" + f"{value['desc']}\n"
         if self.legendary_actions:
-            output += colored(f"Legendary Actions:\n", 'green')
+            output += f"<span style='color:green;'>Legendary Actions:\n</span>"
             for value in self.legendary_actions:
-                output += colored(f"\t{value['name']}: ", 'cyan') + f"{value['desc']}\n"
+                output += f"<span style='color:cyan;'>\t{value['name']}: </span>" + f"{value['desc']}\n"
         return output
 
 def Monster(monster: Union[str, dict]) -> _Monster:
@@ -132,4 +131,7 @@ def show_monster(monster: str) -> None:
     """
     Print details of a monster
     """
-    print(str(Monster(monster.lower().replace(' ', '-'))))
+    if monster.lower().startswith('were') or monster.lower().startswith('vampire'):
+        monster = monster.lower().replace(' ', '-').replace(",", "").replace('-form', '')
+    # print(str(Monster(monster.lower().replace(' ', '-').replace("(", "").replace(")", "").replace(",", "").replace("'", "").replace("/", "-"))))
+    return str(Monster(monster.lower().replace(' ', '-').replace("(", "").replace(")", "").replace(",", "").replace("'", "").replace("/", "-")))

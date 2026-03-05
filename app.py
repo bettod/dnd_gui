@@ -895,7 +895,7 @@ class MainWindow(QMainWindow):
         self.buttonsItemListList = []  # New list for item list buttons
 
         # Set fixed width for all labels and line edits
-        FIXED_WIDTH = 100  # Define a fixed width for all labels and line edits
+        FIXED_WIDTH = 150  # Define a fixed width for all labels and line edits
 
         for character in [Vesperis, Dagl, Dekland, Hrothgeirr, Leeroy]:
             # Name label in red
@@ -914,7 +914,7 @@ class MainWindow(QMainWindow):
 
             # Speed label
             speed_widget = LabelandLineEdit(
-                f"<span style='color:green;'>Speed: (feet) </span>",
+                f"<span style='color:green;'>Speed: feet </span>",
                 f"{getattr(character, 'speed', 'N/A')}"
             )
             speed_widget.label.setFixedWidth(FIXED_WIDTH)

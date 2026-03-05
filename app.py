@@ -417,46 +417,6 @@ class ItemListWindow(QMainWindow):
                     str_widget = self.main_window.labelsAndLineEditStrAttackBonusList[char_idx]
                     dex_widget = self.main_window.labelsAndLineEditDexAttackBonusList[char_idx]
 
-                #     # LabelandLineEdit has .line_edit
-                #     str_bonus_text = str_widget.line_edit.text()
-                #     dex_bonus_text = dex_widget.line_edit.text()
-                #     if str_bonus_text:  # non-empty
-                #         atkbonus_str_string = str_bonus_text
-                #     if dex_bonus_text:  # non-empty
-                #         atkbonus_dex_string = dex_bonus_text
-
-                # if len(getattr(item, "special", "")) > 0:
-                #     atkbonus_str_string += getattr(item, "special", "")
-                #     atkbonus_dex_string += getattr(item, "special", "")
-                #     damage_str = (
-                #         item.damage['damage_dice'] + '+ '
-                #         + str(int(getattr(item, "special", "")) + character.get_ability_modifier(character.strength))
-                #     )
-                #     atkbonus_string = atkbonus_str_string
-                #     for prop in item.properties:
-                #         if "Finesse" in prop.values():
-                #             atkbonus_string = atkbonus_str_string + ' or ' + atkbonus_dex_string
-                #             damage_str += (
-                #                 " or "
-                #                 + item.damage['damage_dice'] + '+ '
-                #                 + str(int(getattr(item, "special", "")) + character.get_ability_modifier(character.dexterity))
-                #             )
-                # else:
-                #     damage_str = (
-                #         item.damage['damage_dice'] + '+ '
-                #         + str(character.get_ability_modifier(character.strength))
-                #     )
-                #     atkbonus_string = atkbonus_str_string
-                #     for prop in item.properties:
-                #         if "Finesse" in prop.values():
-                #             atkbonus_string += ' or ' + atkbonus_dex_string
-                #             damage_str += (
-                #                 " or "
-                #                 + item.damage['damage_dice'] + '+ '
-                #                 + str(character.get_ability_modifier(character.dexterity))
-                #             )
-                #             break
-                
                 # create labels but don't hard‑code the final text yet
                 atk_bonus_label = LabelandLineEdit(
                     "<span style='color:red;'>Atk Bonus: </span>",

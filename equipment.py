@@ -60,6 +60,29 @@ class _Item:
         me = asdict(self)
         for k, v in me.items():
             yield k, v
+    
+    def __str__(self) -> str:
+        output = ''
+        output += f"<span style='color:green'>Inventory:</span>\n"
+        for item in self.inventory:
+            output += f"<span style='color:green'>\t{item.name}</span>\n"
+            if item.desc:
+                output += f"<span style='color:white'>\t\t{item.desc}</span>\n"
+            if item.special:
+                output += f"<span style='color:white'>\t\t{item.special}</span>\n"
+            if item.damage:
+                output += f"<span style='color:white'>\t\t{item.damage['damage_dice']}, {item.damage['damage_type']['name']}</span>\n"
+            if item.properties:
+                for prop in item.properties:
+                    output += f"<span style='color:white'>\t\t{prop['name']}</span>\n"
+            if item.armor_class:
+                output += f"<span style='color:white'>\t\tAC: {str(item.armor_class['base'])}, Dex bonus: {item.armor_class['dex_bonus']}</span>\n"
+            if item.armor_category:
+                output += f"<span style='color:white'>\t\t{item.armor_category}</span>\n"
+        for item in self.magicinventory:
+            output += f"<span style='color:green'>\t{item.name}</span>\n"
+            output += f"<span style='color:white'>\t\t{item.desc}</span>\n"
+        return output
 
 
 def Item(item: Union[str, dict]) -> _Item:

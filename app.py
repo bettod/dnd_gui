@@ -878,6 +878,7 @@ class SpellSlotsWindow(QMainWindow):
 
         # Create a checkbox for each spell slot level
         spell_slots = getattr(character, "spell_slots", {})
+        spells_prepared = getattr(character, "spells_known", [])
         
         for level in range(1, 10):  # Spell levels 1-9
             slot_key = f"spell_slots_level_{level}"
@@ -889,13 +890,33 @@ class SpellSlotsWindow(QMainWindow):
                 level_label.setTextFormat(Qt.RichText)
                 scroll_layout.addWidget(level_label)
 
-                # Create checkboxes for each slot
+                # Get spells of this level from prepared spells
+                spells_of_level = [s for s in spells_prepared if s.level == level]
+                spell_names = [s.name for s in spells_of_level]
+
+                # Create checkbox + combobox for each slot
                 level_checkboxes = []
                 for slot_num in range(1, total_slots + 1):
                     checkbox_key = f"level_{level}_slot_{slot_num}"
-                    checkbox = QCheckBox(f"Slot {slot_num}")
+                    
+                    # Horizontal container for checkbox + combobox
+                    slot_container = QWidget()
+                    slot_layout = QHBoxLayout()
+                    slot_layout.setContentsMargins(0, 0, 0, 0)
+                    slot_container.setLayout(slot_layout)
+
+                    # Checkbox (no text)
+                    checkbox = QCheckBox()
                     checkbox.setStyleSheet(f"color: {ORANGE};")
-                    scroll_layout.addWidget(checkbox)
+                    slot_layout.addWidget(checkbox, stretch=0)
+
+                    # Combobox with prepared spells
+                    combobox = QComboBox()
+                    combobox.addItems(["-- Select Spell --"] + spell_names)
+                    combobox.setStyleSheet(f"color: {ORANGE};")
+                    slot_layout.addWidget(combobox, stretch=1)
+
+                    scroll_layout.addWidget(slot_container)
                     level_checkboxes.append(checkbox)
                     self.slot_checkboxes[checkbox_key] = checkbox
 

@@ -850,6 +850,74 @@ class MonstersByCRWindow(QMainWindow):
             visible = text in name.lower() or text in desc.lower()
             container.setVisible(visible)
 
+class SpellSlotsWindow(QMainWindow):
+    """Display and manage spell slots for a character with checkbuttons."""
+    def __init__(self, character, parent=None):
+        super().__init__(parent)
+        self.character = character
+        self.setWindowTitle(f"Spell Slots - {getattr(character, 'name', 'Unknown')}")
+        self.resize(400, 400)
+
+        central = QWidget()
+        main_layout = QVBoxLayout()
+
+        # Title label
+        title = QLabel(f"Spell Slots for {character.name}")
+        title.setStyleSheet(f"color: {GOLD}; font-weight: bold;")
+        title.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(title)
+
+        # Scroll area for spell slots
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+
+        # Store checkboxes for later reference if needed
+        self.slot_checkboxes = {}
+
+        # Create a checkbox for each spell slot level
+        spell_slots = getattr(character, "spell_slots", {})
+        
+        for level in range(1, 10):  # Spell levels 1-9
+            slot_key = f"spell_slots_level_{level}"
+            total_slots = spell_slots.get(slot_key, 0)
+            
+            if total_slots > 0:
+                # Level header
+                level_label = QLabel(f"<span style='color:{GOLD};'>Level {level} Spells ({total_slots} total)</span>")
+                level_label.setTextFormat(Qt.RichText)
+                scroll_layout.addWidget(level_label)
+
+                # Create checkboxes for each slot
+                level_checkboxes = []
+                for slot_num in range(1, total_slots + 1):
+                    checkbox_key = f"level_{level}_slot_{slot_num}"
+                    checkbox = QCheckBox(f"Slot {slot_num}")
+                    checkbox.setStyleSheet(f"color: {ORANGE};")
+                    scroll_layout.addWidget(checkbox)
+                    level_checkboxes.append(checkbox)
+                    self.slot_checkboxes[checkbox_key] = checkbox
+
+        # Clear button to reset all checkboxes
+        clear_button = QPushButton("Clear All Slots")
+        clear_button.setStyleSheet(f"color: {ROYAL_BLUE};")
+        clear_button.clicked.connect(self.clear_all_slots)
+        scroll_layout.addWidget(clear_button)
+
+        scroll_layout.addStretch(1)
+        scroll_widget.setLayout(scroll_layout)
+        scroll.setWidget(scroll_widget)
+
+        main_layout.addWidget(scroll)
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+
+    def clear_all_slots(self):
+        """Uncheck all spell slot checkboxes."""
+        for checkbox in self.slot_checkboxes.values():
+            checkbox.setChecked(False)
+
 class SpellListWindow(QMainWindow):
     def __init__(self, character, parent=None):
         super().__init__(parent)
@@ -1004,6 +1072,7 @@ class MainWindow(QMainWindow):
         # self.setFixedSize(QSize(400, 300))
                 
         self._spell_windows = {}  # key: character.name, value: SpellListWindow instance
+        self._spell_slots_windows = {}  # key: character.name, value: SpellSlotsWindow instance
         self._item_windows = {}   # key: character.name, value: ItemListWindow instance
         self._features_windows = {}  # key: character.name -> FeaturesWindow
         self._saving_throws_windows = {}  # name -> SavingThrowsWindow
@@ -1029,6 +1098,7 @@ class MainWindow(QMainWindow):
         self.buttonsSavingThrowsListList = []  # New list for saving throws buttons
         self.buttonsFeatureListList = []  # New list for feature list buttons
         self.buttonsSpellListList = []  # New list for spell list buttons
+        self.buttonsSpellSlotsListList = []  # New list for spell slots buttons
         self.buttonsInvocationsListList = [] # New list for invocations list buttons (Warlock only)
         self.buttonsMetamagicListList = [] # New list for metamagic list buttons (Sorcerer only)
         self.buttonsItemListList = []  # New list for item list buttons
@@ -1203,6 +1273,20 @@ class MainWindow(QMainWindow):
                 lambda _, c=character: self.open_spell_list_window(c)
             )
 
+            # Spell Slots button (new)
+            spell_slots_button = QPushButton(f"Show {character.name}'s Spell Slots")
+            spell_slots_button.setStyleSheet(f"color: {LIGHT_MAGENTA};")  # Set the text color to LIGHT_MAGENTA
+            self.buttonsSpellSlotsListList.append(spell_slots_button)
+            spell_slots = getattr(character, "spell_slots", {})
+            total_slots = sum(v for k, v in spell_slots.items() if k.startswith("spell_slots_level_"))
+            if total_slots == 0:
+                spell_slots_button.setEnabled(False)  # Disable if no spell slots
+
+            # connect to open spell slots window for this character
+            spell_slots_button.clicked.connect(
+                lambda _, c=character: self.open_spell_slots_window(c)
+            )
+
             # Item list button (new)
             item_list_button = QPushButton(f"Show {character.name}'s Inventory")
             item_list_button.setStyleSheet(f"color:yellow;")  # Set the text color to yellow
@@ -1269,6 +1353,7 @@ class MainWindow(QMainWindow):
             layout.addWidget(self.buttonsSkillsListList[-1])  # Add saving throws button
             layout.addWidget(self.buttonsFeatureListList[-1])  # Add features button
             layout.addWidget(self.buttonsSpellListList[-1])  # Add spell list button
+            layout.addWidget(self.buttonsSpellSlotsListList[-1])  # Add spell slots button
             if character.class_name == 'Warlock':
                 layout.addWidget(self.buttonsInvocationsListList[-1])  # Add invocations button
             if character.class_name == 'Sorcerer':
@@ -1390,6 +1475,15 @@ class MainWindow(QMainWindow):
         if name not in self._spell_windows:
             self._spell_windows[name] = SpellListWindow(character, self)
         win = self._spell_windows[name]
+        win.show()
+        win.raise_()
+        win.activateWindow()
+
+    def open_spell_slots_window(self, character):
+        name = getattr(character, "name", "Unknown")
+        if name not in self._spell_slots_windows:
+            self._spell_slots_windows[name] = SpellSlotsWindow(character, self)
+        win = self._spell_slots_windows[name]
         win.show()
         win.raise_()
         win.activateWindow()

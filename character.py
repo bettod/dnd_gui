@@ -646,25 +646,33 @@ class Character:
 
     def show_invocations_known(self) -> None:
         if self.class_name != 'Warlock':
+            # This should never happen
             print("Only warlocks have invocations.")
             return
         output = ""
         for invocation in self.invocations:
-            output += colored(f"\t{invocation['name'].replace('Eldritch Invocation: ', '')}\n", 'green')
-            output += colored(f"\t\tPrerequisites: {invocation['prerequisites']}\n", 'white')
-            output += colored(f"\t\tDescription: {invocation['desc']}\n", 'white')
-        print(output)
+            output += f"<span style='color:green;'>{invocation['name'].replace('Eldritch Invocation: ', '')}</span>\n"
+            output += f"<span style='color:white;'>\t\tLevel: {invocation['level']}</span>\n"
+            if invocation['prerequisites'] != '':
+                output += f"<span style='color:white;'>\t\tPrerequisites: </span>"
+                for prereq in invocation['prerequisites']:
+                    for key in prereq.keys():
+                        output += f"<span style='color:white;'>\t\t{key}: {prereq[key].split('/')[-1]}</span>,   "
+                output += "\n"
+            output += f"<span style='color:white;'>\t\tDescription: {invocation['desc']}</span>\n"
+        return output
 
     def show_metamagic_feats(self) -> None:
         if self.class_name != 'Sorcerer':
+            # This should never happen
             print("Only sorcerers have metamagic feats.")
             return
         output = ""
         for feat in self.metamagic_feats:
-            output += colored(f"\t{feat['name'].replace('Metamagic: ', '')}\n", 'green')
-            output += colored(f"\t\tPrerequisites: {feat['prerequisites']}\n", 'white')
-            output += colored(f"\t\tDescription: {feat['desc']}\n", 'white')
-        print(output)
+            output += f"<span style='color:green;'>{feat['name'].replace('Metamagic: ', '')}</span>\n"
+            output += f"<span style='color:white;'>\t\tPrerequisites: {feat['prerequisites']}</span>\n"
+            output += f"<span style='color:white;'>\t\tDescription: {feat['desc']}</span>\n"
+        return output
 
     def show_spells_known(self) -> None:
         output = ""

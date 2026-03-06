@@ -296,6 +296,45 @@ class InvocationsWindow(QMainWindow):
         central.setLayout(main_layout)
         self.setCentralWidget(central)
 
+class MetamagicWindow(QMainWindow):
+    def __init__(self, character, parent=None):
+        super().__init__(parent)
+        self.character = character
+
+        char_name = getattr(character, "name", "Unknown")
+        self.setWindowTitle(f"Metamagic Feats - {char_name}")
+        self.resize(800, 600)
+
+        central = QWidget()
+        main_layout = QVBoxLayout()
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+
+        # Use character.show_invocations_known() to get the text (assuming it returns a string;
+        # if it prints, we need to refactor it to return instead)
+        try:
+            metamagic_text = character.show_metamagic_feats()
+        except TypeError:
+            # if show() prints and returns None, fallback or adjust show()
+            metamagic_text = ""
+
+        html = format_str_html(metamagic_text)
+        label = QLabel(html)
+        label.setWordWrap(True)
+        label.setTextFormat(Qt.RichText)
+
+        scroll_layout.addWidget(label)
+        scroll_layout.addStretch(1)
+        scroll_widget.setLayout(scroll_layout)
+        scroll.setWidget(scroll_widget)
+
+        main_layout.addWidget(scroll)
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+
 
 class SavingThrowsWindow(QMainWindow):
     def __init__(self, character, parent=None):
@@ -970,6 +1009,7 @@ class MainWindow(QMainWindow):
         self._saving_throws_windows = {}  # name -> SavingThrowsWindow
         self._skills_windows = {}  # name -> SkillsWindow
         self._invocations_windows = {}  # key: character.name, value: InvocationsWindow instance
+        self._metamagic_windows = {}  # key: character.name, value: MetamagicWindow instance
 
         self.labelsNameList = [] # New list for name labels
         self.labelsClassLevelList = [] # New list for class and level labels
@@ -990,6 +1030,7 @@ class MainWindow(QMainWindow):
         self.buttonsFeatureListList = []  # New list for feature list buttons
         self.buttonsSpellListList = []  # New list for spell list buttons
         self.buttonsInvocationsListList = [] # New list for invocations list buttons (Warlock only)
+        self.buttonsMetamagicListList = [] # New list for metamagic list buttons (Sorcerer only)
         self.buttonsItemListList = []  # New list for item list buttons
 
         # Set fixed width for all labels and line edits
@@ -1173,7 +1214,7 @@ class MainWindow(QMainWindow):
             # Invocations Button
             if character.class_name == 'Warlock':
                 invocations_button = QPushButton(f"Show {character.name}'s Invocations")
-                invocations_button.setStyleSheet(f"color: {TEAL};")  # Set the text color to ROYAL_BLUE
+                invocations_button.setStyleSheet(f"color: {TEAL};")  # Set the text color to TEAL
                 self.buttonsInvocationsListList.append(invocations_button)
                 if not character.spells_known:
                     invocations_button.setEnabled(False)  # Disable the button if there are no spells known
@@ -1181,6 +1222,19 @@ class MainWindow(QMainWindow):
                 #  connect to open invocations window for this character
                 invocations_button.clicked.connect(
                     lambda _, c=character: self.open_invocations_window(c)
+                )
+
+            # Metamagic Button
+            if character.class_name == 'Sorcerer':
+                metamagic_button = QPushButton(f"Show {character.name}'s Metamagic Feats")
+                metamagic_button.setStyleSheet(f"color: {TEAL};")  # Set the text color to TEAL
+                self.buttonsMetamagicListList.append(metamagic_button)
+                if not character.spells_known:
+                    metamagic_button.setEnabled(False)  # Disable the button if there are no spells known
+
+                # connect to open metamagic window for this character
+                metamagic_button.clicked.connect(
+                    lambda _, c=character: self.open_metamagic_window(c)
                 )
 
             # Item list button (new)
@@ -1217,6 +1271,8 @@ class MainWindow(QMainWindow):
             layout.addWidget(self.buttonsSpellListList[-1])  # Add spell list button
             if character.class_name == 'Warlock':
                 layout.addWidget(self.buttonsInvocationsListList[-1])  # Add invocations button
+            if character.class_name == 'Sorcerer':
+                layout.addWidget(self.buttonsMetamagicListList[-1])  # Add metamagic button
             layout.addWidget(self.buttonsItemListList[-1])  # Add item list button
 
             # Wrap the layout in a QWidget to apply a border
@@ -1343,6 +1399,15 @@ class MainWindow(QMainWindow):
         if name not in self._invocations_windows:
             self._invocations_windows[name] = InvocationsWindow(character, self)
         win = self._invocations_windows[name]
+        win.show()
+        win.raise_()
+        win.activateWindow()
+
+    def open_metamagic_window(self, character):
+        name = getattr(character, "name", "Unknown")
+        if name not in self._metamagic_windows:
+            self._metamagic_windows[name] = MetamagicWindow(character, self)
+        win = self._metamagic_windows[name]
         win.show()
         win.raise_()
         win.activateWindow()

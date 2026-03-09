@@ -35,7 +35,7 @@ from feats import SRD_feats
 from invocations import SRD_invocations
 from skills import SRD_skills, show_skill
 from monsters import SRD_monsters, Monster, show_monster_list, show_monsters_by_rating, show_monster
-from rules import show_rules
+# from rules import show_rules
 
 from vesperis import Vesperis
 from dagl import Dagl
@@ -861,8 +861,20 @@ class RulesWindow(QMainWindow):
         self.resize(900, 700)
 
         central = QWidget()
+        # Outer vertical layout: search bar + content
+        outer_layout = QVBoxLayout()
+        central.setLayout(outer_layout)
+
+        # Search bar
+        search_layout = QHBoxLayout()
+        self.search_edit = QLineEdit()
+        self.search_edit.setPlaceholderText("Search rules...")
+        search_layout.addWidget(self.search_edit)
+        outer_layout.addLayout(search_layout)
+
+        # Main horizontal layout: tree + text
         main_layout = QHBoxLayout()
-        central.setLayout(main_layout)
+        outer_layout.addLayout(main_layout)
 
         # Left: tree of rules
         self.tree = QTreeWidget()
@@ -879,6 +891,7 @@ class RulesWindow(QMainWindow):
         # Populate tree from SRD_rules
         self._populate_tree()
         self.tree.itemClicked.connect(self._on_item_clicked)
+        self.search_edit.textChanged.connect(self._on_search_changed)
 
     def _populate_tree(self):
         # SRD_rules is a nested dict of strings; split leaf strings by '#'
@@ -911,9 +924,60 @@ class RulesWindow(QMainWindow):
             # Non-leaf node; clear or ignore
             self.text_view.clear()
             return
-        # Simple formatting: replace '#' headers with bold-like marker
         formatted = text.replace("#", "")
         self.text_view.setPlainText(formatted)
+
+    def _on_search_changed(self, text: str):
+        """Filter tree items and highlight matches in the current rule text."""
+        text = text.strip().lower()
+
+        # Filter tree: show nodes whose label or stored text matches, and their ancestors.
+        def matches(item) -> bool:
+            label = item.text(0).lower()
+            stored = item.data(0, Qt.UserRole)
+            stored_text = stored.lower() if isinstance(stored, str) else ""
+            if not text:
+                return True
+            return (text in label) or (text in stored_text)
+
+        def filter_item(item) -> bool:
+            child_match = False
+            for i in range(item.childCount()):
+                if filter_item(item.child(i)):
+                    child_match = True
+            own_match = matches(item)
+            visible = own_match or child_match
+            item.setHidden(not visible)
+            if visible and text:
+                # Expand branches that contain matches
+                parent = item.parent()
+                while parent is not None:
+                    parent.setExpanded(True)
+                    parent = parent.parent()
+            return visible
+
+        for i in range(self.tree.topLevelItemCount()):
+            filter_item(self.tree.topLevelItem(i))
+
+        # Highlight in text_view (simple lowercase search, no rich formatting)
+        current = self.text_view.toPlainText()
+        if not text or not current:
+            # Reset any selection
+            cursor = self.text_view.textCursor()
+            cursor.clearSelection()
+            self.text_view.setTextCursor(cursor)
+            return
+
+        idx = current.lower().find(text)
+        if idx != -1:
+            cursor = self.text_view.textCursor()
+            cursor.setPosition(idx)
+            cursor.setPosition(idx + len(text), cursor.KeepAnchor)
+            self.text_view.setTextCursor(cursor)
+        else:
+            cursor = self.text_view.textCursor()
+            cursor.clearSelection()
+            self.text_view.setTextCursor(cursor)
 
 class SpellSlotsWindow(QMainWindow):
     """Display and manage spell slots for a character with checkbuttons."""
@@ -1525,9 +1589,9 @@ class MainWindow(QMainWindow):
         # New: Rules menu (no character info needed)
         rules_menu = menubar.addMenu("Rules")
 
-        open_rules_action = QAction("Show Rules (console)", self)
-        open_rules_action.triggered.connect(show_rules)  # uses your existing function
-        rules_menu.addAction(open_rules_action)
+        # open_rules_action = QAction("Show Rules (console)", self)
+        # open_rules_action.triggered.connect(show_rules)  # uses your existing function
+        # rules_menu.addAction(open_rules_action)
 
         # New: GUI rules view
         open_rules_view_action = QAction("Rules view", self)

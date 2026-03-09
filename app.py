@@ -855,7 +855,7 @@ class SpellSlotsWindow(QMainWindow):
     def __init__(self, character, parent=None):
         super().__init__(parent)
         self.character = character
-        self.setWindowTitle(f"Spell Slots - {getattr(character, 'name', 'Unknown')}")
+        # self.setWindowTitle(f"Spell Slots - {getattr(character, 'name', 'Unknown')}")
         self.resize(400, 400)
 
         central = QWidget()
@@ -879,26 +879,47 @@ class SpellSlotsWindow(QMainWindow):
         # Create a checkbox for each spell slot level
         spell_slots = getattr(character, "spell_slots", {})
         spells_prepared = getattr(character, "spells_known", [])
-        
+
+        # Special handling for Warlocks: all known spells are cast at the highest
+        # available spell slot level. Compute the highest slot level with >0 slots.
+        is_warlock = getattr(character, "class_name", "").lower() == "warlock"
+        highest_slot_level = None
+        if is_warlock:
+            nonzero_levels = [
+                lvl for lvl in range(1, 10)
+                if spell_slots.get(f"spell_slots_level_{lvl}", 0) > 0
+            ]
+            highest_slot_level = max(nonzero_levels) if nonzero_levels else None
+
         for level in range(1, 10):  # Spell levels 1-9
+            # If warlock, only show the highest slot level
+            if is_warlock and highest_slot_level is not None and level != highest_slot_level:
+                continue
+
             slot_key = f"spell_slots_level_{level}"
             total_slots = spell_slots.get(slot_key, 0)
-            
+
             if total_slots > 0:
-                # Level header
-                level_label = QLabel(f"<span style='color:{GOLD};'>Level {level} Spells ({total_slots} total)</span>")
+                # Level header (for warlock, indicate that all known spells are shown)
+                if is_warlock:
+                    level_label = QLabel(f"<span style='color:{GOLD};'>Level {level} Spells (Warlock - all known spells) ({total_slots} total)</span>")
+                else:
+                    level_label = QLabel(f"<span style='color:{GOLD};'>Level {level} Spells ({total_slots} total)</span>")
                 level_label.setTextFormat(Qt.RichText)
                 scroll_layout.addWidget(level_label)
 
-                # Get spells of this level from prepared spells
-                spells_of_level = [s for s in spells_prepared if s.level == level]
+                # For warlocks, show all known spells regardless of their individual level.
+                if is_warlock:
+                    spells_of_level = spells_prepared[:]  # all known spells
+                else:
+                    spells_of_level = [s for s in spells_prepared if s.level == level]
                 spell_names = [s.name for s in spells_of_level]
 
                 # Create checkbox + combobox for each slot
                 level_checkboxes = []
                 for slot_num in range(1, total_slots + 1):
                     checkbox_key = f"level_{level}_slot_{slot_num}"
-                    
+
                     # Horizontal container for checkbox + combobox
                     slot_container = QWidget()
                     slot_layout = QHBoxLayout()
@@ -1066,6 +1087,10 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle(f"<span style='color:{GOLD};'>DND game manager</span>")
+        # Initial main window size (width, height). Adjust as you prefer.
+        self.resize(1200, 800)
+        # Keep a reasonable minimum so the layout doesn't collapse.
+        self.setMinimumSize(800, 600)
         
         # Force the style to be the same on all OSs:
         app.setStyle("Fusion")
@@ -1091,6 +1116,7 @@ class MainWindow(QMainWindow):
 
         # fixed window size. can also call setMinimumSize() and setMaximumSize()
         # self.setFixedSize(QSize(400, 300))
+        # self.set  Size(QSize(400, 300))
                 
         self._spell_windows = {}  # key: character.name, value: SpellListWindow instance
         self._spell_slots_windows = {}  # key: character.name, value: SpellSlotsWindow instance
@@ -1357,6 +1383,9 @@ class MainWindow(QMainWindow):
 
             # Add widgets and button to layout
             layout = QVBoxLayout()
+            # Reduce vertical spacing between LabelandLineEdit widgets and buttons
+            layout.setSpacing(4)                 # default is larger; 4 is tighter
+            layout.setContentsMargins(4, 4, 4, 4)  # small margins so widgets are closer to each other
             layout.addWidget(self.labelsNameList[-1])  # Add name widget
             layout.addWidget(self.labelsClassLevelList[-1])  # Add class and level widget
             layout.addWidget(self.labelsSpeedList[-1])  # Add speed widget

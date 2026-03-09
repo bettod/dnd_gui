@@ -20,6 +20,9 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QScrollArea,
     QCheckBox,    
+    QTreeWidget,
+    QTreeWidgetItem,
+    QTextEdit,
 )
 
 from character import Character
@@ -850,6 +853,68 @@ class MonstersByCRWindow(QMainWindow):
             visible = text in name.lower() or text in desc.lower()
             container.setVisible(visible)
 
+class RulesWindow(QMainWindow):
+    """Expandable view of all SRD_rules by depth."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Rules (SRD)")
+        self.resize(900, 700)
+
+        central = QWidget()
+        main_layout = QHBoxLayout()
+        central.setLayout(main_layout)
+
+        # Left: tree of rules
+        self.tree = QTreeWidget()
+        self.tree.setHeaderLabel("Rules")
+        main_layout.addWidget(self.tree, stretch=1)
+
+        # Right: rule text
+        self.text_view = QTextEdit()
+        self.text_view.setReadOnly(True)
+        main_layout.addWidget(self.text_view, stretch=2)
+
+        self.setCentralWidget(central)
+
+        # Populate tree from SRD_rules
+        self._populate_tree()
+        self.tree.itemClicked.connect(self._on_item_clicked)
+
+    def _populate_tree(self):
+        # SRD_rules is a nested dict of strings; split leaf strings by '#'
+        def add_nodes(parent_item, value):
+            if isinstance(value, dict):
+                for k, v in value.items():
+                    child = QTreeWidgetItem([k])
+                    parent_item.addChild(child)
+                    add_nodes(child, v)
+            elif isinstance(value, str):
+                # Split by '#' into sections, each first line becomes a child node
+                sections = [s for s in value.split("#") if s.strip()]
+                for idx, section in enumerate(sections):
+                    title_line = section.strip().split("\n", 1)[0]
+                    child = QTreeWidgetItem([title_line])
+                    # Store full text for this section
+                    child.setData(0, Qt.UserRole, section.strip())
+                    parent_item.addChild(child)
+
+        self.tree.clear()
+        for top_key, second_level in SRD_rules.items():
+            top_item = QTreeWidgetItem([top_key])
+            self.tree.addTopLevelItem(top_item)
+            add_nodes(top_item, second_level)
+        self.tree.expandToDepth(1)
+
+    def _on_item_clicked(self, item, _column):
+        text = item.data(0, Qt.UserRole)
+        if not text:
+            # Non-leaf node; clear or ignore
+            self.text_view.clear()
+            return
+        # Simple formatting: replace '#' headers with bold-like marker
+        formatted = text.replace("#", "")
+        self.text_view.setPlainText(formatted)
+
 class SpellSlotsWindow(QMainWindow):
     """Display and manage spell slots for a character with checkbuttons."""
     def __init__(self, character, parent=None):
@@ -1429,6 +1494,7 @@ class MainWindow(QMainWindow):
         self._dice_window = None
         self._spells_by_level_window = None
         self._monsters_by_cr_window = None
+        self._rules_window = None
         self._create_menu()
 
     def _create_menu(self):
@@ -1462,6 +1528,11 @@ class MainWindow(QMainWindow):
         open_rules_action = QAction("Show Rules (console)", self)
         open_rules_action.triggered.connect(show_rules)  # uses your existing function
         rules_menu.addAction(open_rules_action)
+
+        # New: GUI rules view
+        open_rules_view_action = QAction("Rules view", self)
+        open_rules_view_action.triggered.connect(self.open_rules_window)
+        rules_menu.addAction(open_rules_view_action)
 
     def open_saving_throws_window(self, character):
         name = getattr(character, "name", "Unknown")
@@ -1555,6 +1626,13 @@ class MainWindow(QMainWindow):
         win.show()
         win.raise_()
         win.activateWindow()
+
+    def open_rules_window(self):
+        if self._rules_window is None:
+            self._rules_window = RulesWindow(self)
+        self._rules_window.show()
+        self._rules_window.raise_()
+        self._rules_window.activateWindow()
 
 app = QApplication(sys.argv)
 

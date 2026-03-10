@@ -3,7 +3,7 @@ from pprint import pprint
 
 from PyQt5.QtCore import QFile, QFile, QTextStream, QSize, Qt
 # from PyQt5.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QPushButton, QLabel, QLineEdit, QVBoxLayout, QWidget
-from PyQt5.QtGui import QPalette, QColor, QIntValidator
+from PyQt5.QtGui import QPalette, QColor, QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -224,6 +224,45 @@ class DiceWindow(QMainWindow):
             )
         else:
             self.result_label.setText("Please select a function.")
+
+class FeetToMetersWindow(QMainWindow):
+    """Simple converter from feet to meters."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Feet to Meters")
+
+        central = QWidget()
+        layout = QVBoxLayout()
+
+        row = QHBoxLayout()
+        self.feet_edit = QLineEdit()
+        self.feet_edit.setPlaceholderText("Feet")
+        # allow only floating-point numbers (e.g. -9999.99 to 9999.99)
+        validator = QDoubleValidator(-9999.99, 9999.99, 2, self)
+        validator.setNotation(QDoubleValidator.StandardNotation)
+        self.feet_edit.setValidator(validator)
+        row.addWidget(QLabel("Feet:"))
+        row.addWidget(self.feet_edit)
+        layout.addLayout(row)
+
+        self.result_label = QLabel("Meters: -")
+        convert_btn = QPushButton("Convert")
+        convert_btn.clicked.connect(self.convert)
+
+        layout.addWidget(convert_btn)
+        layout.addWidget(self.result_label)
+
+        central.setLayout(layout)
+        self.setCentralWidget(central)
+
+    def convert(self):
+        try:
+            feet = float(self.feet_edit.text())
+        except ValueError:
+            self.result_label.setText("Meters: invalid input")
+            return
+        meters = feet * 0.3048
+        self.result_label.setText(f"Meters: {meters:.2f}")
 
 class FeaturesWindow(QMainWindow):
     def __init__(self, character, parent=None):
@@ -1674,6 +1713,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(container)
 
         self._dice_window = None
+        self._feet_to_meters_window = None
         self._spells_by_level_window = None
         self._monsters_by_cr_window = None
         self._rules_window = None
@@ -1687,6 +1727,11 @@ class MainWindow(QMainWindow):
         open_dice_action = QAction("Dice Roller", self)
         open_dice_action.triggered.connect(self.open_dice_window)
         tools_menu.addAction(open_dice_action)
+
+        # Feet to meters converter
+        open_ftm_action = QAction("Feet to Meters Converter", self)
+        open_ftm_action.triggered.connect(self.open_feet_to_meters_window)
+        tools_menu.addAction(open_ftm_action)
 
         # New: Lists menu (no actions wired yet)
         lists_menu = menubar.addMenu("Lists")
@@ -1749,6 +1794,13 @@ class MainWindow(QMainWindow):
         self._dice_window.show()
         self._dice_window.raise_()
         self._dice_window.activateWindow()
+
+    def open_feet_to_meters_window(self):
+        if self._feet_to_meters_window is None:
+            self._feet_to_meters_window = FeetToMetersWindow(self)
+        self._feet_to_meters_window.show()
+        self._feet_to_meters_window.raise_()
+        self._feet_to_meters_window.activateWindow()
 
     def open_spells_by_level_window(self):
         if self._spells_by_level_window is None:

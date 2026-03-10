@@ -82,11 +82,15 @@ class LabelandLineEdit(QWidget):
         int_validator = QIntValidator(0, 9999, self)
         self.line_edit.setValidator(int_validator)
 
-        layout = QHBoxLayout()
-        layout.addWidget(self.label)
-        layout.addWidget(self.line_edit)
+        # expose the inner layout so callers can tune spacing/margins
+        self.layout_hbox = QHBoxLayout()
+        self.layout_hbox.addWidget(self.label)
+        self.layout_hbox.addWidget(self.line_edit)
+        # tight default for this composite widget
+        self.layout_hbox.setSpacing(2)
+        self.layout_hbox.setContentsMargins(0, 0, 0, 0)
 
-        self.setLayout(layout)
+        self.setLayout(self.layout_hbox)
     
     def editLine(self, new_text):
         self.line_edit.setText(new_text)
@@ -1280,7 +1284,7 @@ class MainWindow(QMainWindow):
         self.buttonsItemListList = []  # New list for item list buttons
 
         # Set fixed width for all labels and line edits
-        FIXED_WIDTH = 150  # Define a fixed width for all labels and line edits
+        FIXED_WIDTH = 125  # Define a fixed width for all labels and line edits
 
         for character in [Vesperis, Dagl, Dekland, Hrothgeirr, Leeroy]:
             # Name label in red
@@ -1302,8 +1306,10 @@ class MainWindow(QMainWindow):
                 f"<span style='color:green;'>Speed: feet </span>",
                 f"{getattr(character, 'speed', 'N/A')}"
             )
+            speed_widget.layout_hbox.setSpacing(2)
+            speed_widget.layout_hbox.setContentsMargins(0, 0, 0, 0)
             speed_widget.label.setFixedWidth(FIXED_WIDTH)
-            speed_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            # speed_widget.line_edit.setFixedWidth(FIXED_WIDTH)
             speed_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
             self.labelsSpeedList.append(speed_widget)
 
@@ -1312,8 +1318,10 @@ class MainWindow(QMainWindow):
                 f"<span style='color:green;'>Max HP: </span>",
                 f"{getattr(character, 'max_hp', 'N/A')}"
             )
+            max_hp_widget.layout_hbox.setSpacing(2)
+            max_hp_widget.layout_hbox.setContentsMargins(0, 0, 0, 0)
             max_hp_widget.label.setFixedWidth(FIXED_WIDTH)
-            max_hp_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            # max_hp_widget.line_edit.setFixedWidth(FIXED_WIDTH)
             max_hp_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
             self.labelsMaxHPList.append(max_hp_widget)
 
@@ -1322,8 +1330,10 @@ class MainWindow(QMainWindow):
                 f"<span style='color:{ORANGE};'>Current HP: </span>",
                 str(getattr(character, 'current_hp', 'N/A'))
             )
+            current_hp_widget.layout_hbox.setSpacing(2)
+            current_hp_widget.layout_hbox.setContentsMargins(0, 0, 0, 0)
             current_hp_widget.label.setFixedWidth(FIXED_WIDTH)
-            current_hp_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            # current_hp_widget.line_edit.setFixedWidth(FIXED_WIDTH)
             current_hp_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
             self.labelAndLineEditHP.append(current_hp_widget)
 
@@ -1332,8 +1342,10 @@ class MainWindow(QMainWindow):
                 f"<span style='color:green;'>Armor Class: </span>",
                 f"{getattr(character, 'armor_class', 'N/A')}"
             )
+            armor_class_widget.layout_hbox.setSpacing(2)
+            armor_class_widget.layout_hbox.setContentsMargins(0, 0, 0, 0)
             armor_class_widget.label.setFixedWidth(FIXED_WIDTH)
-            armor_class_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            # armor_class_widget.line_edit.setFixedWidth(FIXED_WIDTH)
             armor_class_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
             self.labelsArmorClassList.append(armor_class_widget)
 
@@ -1343,7 +1355,7 @@ class MainWindow(QMainWindow):
                 f"{getattr(character, 'initiative', 'N/A')}"
             )
             initiative_widget.label.setFixedWidth(FIXED_WIDTH)
-            initiative_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            # initiative_widget.line_edit.setFixedWidth(FIXED_WIDTH)
             initiative_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
             self.labelsInitiativeList.append(initiative_widget)
 
@@ -1353,7 +1365,7 @@ class MainWindow(QMainWindow):
                 f"{getattr(character, 'prof_bonus', 'N/A')}"
             )
             prof_bonus_widget.label.setFixedWidth(FIXED_WIDTH)
-            prof_bonus_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            # prof_bonus_widget.line_edit.setFixedWidth(FIXED_WIDTH)
             prof_bonus_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
             self.labelsProfBonusList.append(prof_bonus_widget)
 
@@ -1363,7 +1375,7 @@ class MainWindow(QMainWindow):
                 str(character.get_ability_modifier(character.strength) + character.prof_bonus)
             )
             str_attack_bonus_widget.label.setFixedWidth(FIXED_WIDTH)
-            str_attack_bonus_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            # str_attack_bonus_widget.line_edit.setFixedWidth(FIXED_WIDTH)
             str_attack_bonus_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
             self.labelsAndLineEditStrAttackBonusList.append(str_attack_bonus_widget)
 
@@ -1373,7 +1385,7 @@ class MainWindow(QMainWindow):
                 str(character.get_ability_modifier(character.dexterity) + character.prof_bonus)
             )
             dex_attack_bonus_widget.label.setFixedWidth(FIXED_WIDTH)
-            dex_attack_bonus_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            # dex_attack_bonus_widget.line_edit.setFixedWidth(FIXED_WIDTH)
             dex_attack_bonus_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
             self.labelsAndLineEditDexAttackBonusList.append(dex_attack_bonus_widget)
 
@@ -1389,7 +1401,7 @@ class MainWindow(QMainWindow):
             spell_attack_bonus_widget = LabelandLineEdit(
                 f"<span style='color:green;'>Spell Atk. Bonus: </span>", str(mod))
             spell_attack_bonus_widget.label.setFixedWidth(FIXED_WIDTH)
-            spell_attack_bonus_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            # spell_attack_bonus_widget.line_edit.setFixedWidth(FIXED_WIDTH)
             spell_attack_bonus_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
             self.labelsAndLineEditSpellAttackBonusList.append(spell_attack_bonus_widget)
             if not character.spellcasting_stat:
@@ -1407,7 +1419,7 @@ class MainWindow(QMainWindow):
             spell_dc_widget = LabelandLineEdit(
                 f"<span style='color:green;'>Spell DC: </span>", str(mod))
             spell_dc_widget.label.setFixedWidth(FIXED_WIDTH)
-            spell_dc_widget.line_edit.setFixedWidth(FIXED_WIDTH)
+            # spell_dc_widget.line_edit.setFixedWidth(FIXED_WIDTH)
             spell_dc_widget.line_edit.setAlignment(Qt.AlignCenter)  # Set alignment to center
             self.labelsAndLineEditSpellDCList.append(spell_dc_widget)
             if not character.spellcasting_stat:
@@ -1514,7 +1526,7 @@ class MainWindow(QMainWindow):
             layout = QVBoxLayout()
             # Reduce vertical spacing between LabelandLineEdit widgets and buttons
             layout.setSpacing(4)                 # default is larger; 4 is tighter
-            layout.setContentsMargins(4, 4, 4, 4)  # small margins so widgets are closer to each other
+            layout.setContentsMargins(0, 0, 0, 0)  # small margins so widgets are closer to each other
             layout.addWidget(self.labelsNameList[-1])  # Add name widget
             layout.addWidget(self.labelsClassLevelList[-1])  # Add class and level widget
             layout.addWidget(self.labelsSpeedList[-1])  # Add speed widget

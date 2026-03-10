@@ -1,0 +1,6 @@
+{
+  "name": "Paralyzed",
+  "index": "paralyzed",
+  "desc": "## Paralyzed\n\nA paralyzed creature is incapacitated and can't move or speak.\nThe creature automatically fails Strength and Dexterity saving throws.\nAttack rolls against the creature have advantage.\nAny attack that hits the creature is a critical hit if the attacker is within 5 feet of the creature.\n",
+  "url": "/api/rule-sections/paralyzed"
+}

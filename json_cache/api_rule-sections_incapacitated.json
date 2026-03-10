@@ -1,0 +1,6 @@
+{
+  "name": "Incapacitated",
+  "index": "incapacitated",
+  "desc": "## Incapacitated\n\nAn incapacitated creature can't take actions or reactions.\n",
+  "url": "/api/rule-sections/incapacitated"
+}

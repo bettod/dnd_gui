@@ -1,0 +1,6 @@
+{
+  "name": "Grappled",
+  "index": "grappled",
+  "desc": "## Grappled\n\nA grappled creature's speed becomes 0, and it can't benefit from any bonus to its speed.\nThe condition ends if the grappler is incapacitated.\nThe condition also ends if an effect removes the grappled creature from the reach of the grappler or grappling effect.\n",
+  "url": "/api/rule-sections/grappled"
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Invisible",
+  "index": "invisible",
+  "desc": "## Invisible\n\nAn invisible creature is impossible to see without the aid of magic or a special sense.\nFor the purpose of hiding, the creature is heavily obscured.\nThe creature's location can be detected by any noise it makes or any tracks it leaves.\n\nAttack rolls against the creature have disadvantage, and the creature's attack rolls have advantage.\n",
+  "url": "/api/rule-sections/invisible"
+}

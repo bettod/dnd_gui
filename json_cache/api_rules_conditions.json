@@ -1,0 +1,23 @@
+{
+  "name": "Conditions and Statuses",
+  "index": "conditions",
+  "desc": "## Conditions and Statuses\n\nConditions alter a creature's capabilities in a variety of ways and can arise as a result of a spell, a class feature, a monster's attack, or other effect. Most conditions, such as blinded, are impairments, but a few, such as invisible, can be advantageous.\nA condition lasts either until it is countered (the prone condition is countered by standing up, for example) or for a duration specified by the effect that imposed the condition.\nIf multiple effects impose the same condition on a creature, each instance of the condition has its own duration, but the condition's effects don't get worse. A creature either has a condition or doesn't.\nThe following definitions specify what happens to a creature while it is subjected to a condition.\n",
+  "subsections": [
+    { "name": "Blinded",      "index": "blinded",      "url": "/api/rule-sections/blinded" },
+    { "name": "Charmed",      "index": "charmed",      "url": "/api/rule-sections/charmed" },
+    { "name": "Deafened",     "index": "deafened",     "url": "/api/rule-sections/deafened" },
+    { "name": "Exhaustion",   "index": "exhaustion",   "url": "/api/rule-sections/exhaustion" },
+    { "name": "Frightened",   "index": "frightened",   "url": "/api/rule-sections/frightened" },
+    { "name": "Grappled",     "index": "grappled",     "url": "/api/rule-sections/grappled" },
+    { "name": "Incapacitated","index": "incapacitated","url": "/api/rule-sections/incapacitated" },
+    { "name": "Invisible",    "index": "invisible",    "url": "/api/rule-sections/invisible" },
+    { "name": "Paralyzed",    "index": "paralyzed",    "url": "/api/rule-sections/paralyzed" },
+    { "name": "Petrified",    "index": "petrified",    "url": "/api/rule-sections/petrified" },
+    { "name": "Poisoned",     "index": "poisoned",     "url": "/api/rule-sections/poisoned" },
+    { "name": "Prone",        "index": "prone",        "url": "/api/rule-sections/prone" },
+    { "name": "Restrained",   "index": "restrained",   "url": "/api/rule-sections/restrained" },
+    { "name": "Stunned",      "index": "stunned",      "url": "/api/rule-sections/stunned" },
+    { "name": "Unconscious",  "index": "unconscious",  "url": "/api/rule-sections/unconscious" }
+  ],
+  "url": "/api/rule-sections/conditions"
+}

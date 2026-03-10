@@ -1,0 +1,7 @@
+{
+    "name": "Restrained",
+    "index": "restrained",
+    "desc": "## Restrained\n\nA restrained creature's speed becomes 0, and it can't benefit from any bonus to its speed\nAttack rolls against the creature have advantage, and the creature's attack rolls have disadvantage.\nThe creature has disadvantage on Dexterity saving throws.\n",
+    "url": "/api/rule-sections/prone"
+  }
+  

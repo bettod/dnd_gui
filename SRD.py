@@ -141,3 +141,12 @@ for result in SRD(SRD_endpoints["races"])["results"]:
 
 # for result in SRD(SRD_endpoints["features"])["results"]:
     # SRD_features[result["index"]] = SRD(result["url"])
+
+# Custom rules
+with open('./json_cache/api_rules_conditions.json') as json_file:
+    data = json.load(json_file)
+SRD_rules.update(
+  {data["name"] : 
+        {subsection['name']: SRD(subsection["url"])["desc"]
+            for subsection in data["subsections"]
+   }})

@@ -98,7 +98,7 @@ class LabelandLineEdit(QWidget):
 class DiceWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f"<span style='color:{GOLD};'>Dice Roller</span>")
+        self.setWindowTitle(f"Dice Roller")
 
         central = QWidget()
         main_layout = QVBoxLayout()
@@ -426,7 +426,7 @@ class ItemListWindow(QMainWindow):
         self.main_window = parent  # reference to MainWindow for updating character state if needed
 
         char_name = getattr(character, "name", "Unknown")
-        self.setWindowTitle(f"<span style='color:{GOLD};'>Inventory - {getattr(character, 'name', 'Unknown')}</span>")
+        self.setWindowTitle(f"Inventory - {getattr(character, 'name', 'Unknown')}")
         self.resize(400, 600)
 
         central = QWidget()
@@ -983,6 +983,100 @@ class RulesWindow(QMainWindow):
             cursor.clearSelection()
             self.text_view.setTextCursor(cursor)
 
+class StatusWindow(QMainWindow):
+    """Per-character window to toggle conditions on/off."""
+    def __init__(self, character, parent=None):
+        super().__init__(parent)
+        self.character = character
+
+        char_name = getattr(character, "name", "Unknown")
+        # self.setWindowTitle(f"Statuses - {char_name}")
+        self.resize(500, 500)
+
+        central = QWidget()
+        main_layout = QVBoxLayout()
+
+        # Title
+        title = QLabel(f"Statuses and Conditions for {char_name}")
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet(f"color: {GOLDEN_ROD}; font-weight: bold;")
+        main_layout.addWidget(title)
+
+        # Scroll area for many conditions
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+
+        self.condition_checkboxes = {}
+
+        # Short descriptions for each condition
+        condition_descriptions = {
+            "blinded":      "Can't see; fails sight checks; attacks vs you have adv; your attacks have disadv.",
+            "charmed":      "Can't attack charmer; charmer has adv on social checks vs you.",
+            "deafened":     "Can't hear; fails checks that require hearing.",
+            "exhaustion":   "Six levels; each adds cumulative penalties.",
+            "frightened":   "Disadv on checks/attacks; can't move closer to source of fear.",
+            "grappled":     "Speed 0; ends if grappler is incapacitated or you are moved.",
+            "incapacitated":"Can't take actions or reactions.",
+            "invisible":    "Can't be seen; attacks vs you have disadv; your attacks have adv.",
+            "paralyzed":    "Incapacitated; auto‑fail STR/DEX saves; attacks vs you have adv; melee crits.",
+            "petrified":    "Turned to solid; incapacitated; STR/DEX saves fail; resist all damage.",
+            "poisoned":     "Disadvantage on attack rolls and ability checks.",
+            "prone":        "Only crawl or stand; melee vs you adv, ranged vs you disadv; your attacks disadv.",
+            "restrained":   "Speed 0; attacks vs you adv; your attacks and DEX saves disadv.",
+            "stunned":      "Incapacitated; can't move; STR/DEX saves auto‑fail; attacks vs you adv.",
+            "unconscious":  "Incapacitated; prone; STR/DEX saves auto‑fail; melee hits are crits.",
+        }
+
+        # Get conditions list from SRD_rules["Conditions and Statuses"]["subsections"]
+        cond_section = SRD_rules.get("Conditions and Statuses") or SRD_rules.get("conditions")
+        subsections = cond_section.keys() if cond_section else []
+
+        for sub in subsections:
+            idx = sub.lower()
+
+            row = QWidget()
+            row_layout = QHBoxLayout()
+            row_layout.setContentsMargins(0, 0, 0, 0)
+            row_layout.setSpacing(4)
+            row.setLayout(row_layout)
+
+            cb = QCheckBox(sub)
+            cb.setStyleSheet(f"color: {SALMON};")
+            # initialize from character.conditions if present
+            if hasattr(character, "conditions") and idx in character.conditions:
+                cb.setChecked(bool(character.conditions[idx]))
+
+            cb.toggled.connect(
+                lambda checked, cond_idx=idx, ch=character: self._on_condition_toggled(ch, cond_idx, checked)
+            )
+            self.condition_checkboxes[idx] = cb
+            row_layout.addWidget(cb, stretch=0)
+
+            # description label
+            desc_text = condition_descriptions.get(idx, "")
+            desc_label = QLabel(desc_text)
+            desc_label.setWordWrap(True)
+            desc_label.setStyleSheet("color: #CCCCCC; font-size: 10px;")
+            row_layout.addWidget(desc_label, stretch=1)
+
+            scroll_layout.addWidget(row)
+
+        scroll_layout.addStretch(1)
+        scroll_widget.setLayout(scroll_layout)
+        scroll.setWidget(scroll_widget)
+
+        main_layout.addWidget(scroll)
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+
+    def _on_condition_toggled(self, character, cond_idx: str, checked: bool):
+        # keep Character.conditions dict in sync
+        if not hasattr(character, "conditions") or character.conditions is None:
+            character.conditions = {}
+        character.conditions[cond_idx] = checked
+
 class SpellSlotsWindow(QMainWindow):
     """Display and manage spell slots for a character with checkbuttons."""
     def __init__(self, character, parent=None):
@@ -1097,7 +1191,7 @@ class SpellListWindow(QMainWindow):
     def __init__(self, character, parent=None):
         super().__init__(parent)
         self.character = character
-        self.setWindowTitle(f"<span style='color:{GOLD};'>Spells - {getattr(character, 'name', 'Unknown')}</span>")
+        self.setWindowTitle(f"Spells - {getattr(character, 'name', 'Unknown')}")
         # initial size (resizable)
         self.resize(800, 800)  # width, height in pixels
 
@@ -1219,7 +1313,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle(f"<span style='color:{GOLD};'>DND game manager</span>")
+        self.setWindowTitle(f"DND game manager")
         # Initial main window size (width, height). Adjust as you prefer.
         self.resize(1200, 800)
         # Keep a reasonable minimum so the layout doesn't collapse.
@@ -1259,6 +1353,7 @@ class MainWindow(QMainWindow):
         self._skills_windows = {}  # name -> SkillsWindow
         self._invocations_windows = {}  # key: character.name, value: InvocationsWindow instance
         self._metamagic_windows = {}  # key: character.name, value: MetamagicWindow instance
+        self._status_windows = {}  # key: character.name, value: StatusWindow instance
 
         self.labelsNameList = [] # New list for name labels
         self.labelsClassLevelList = [] # New list for class and level labels
@@ -1274,6 +1369,7 @@ class MainWindow(QMainWindow):
         self.labelsAndLineEditSpellAttackBonusList = []  # New list for Spell Attack Bonus
         self.labelsAndLineEditSpellDCList = []  # New list for Spell DC
 
+        self.buttonsStatusListList = []  # New list for status buttons
         self.buttonsSkillsListList = []  # New list for skills buttons
         self.buttonsSavingThrowsListList = []  # New list for saving throws buttons
         self.buttonsFeatureListList = []  # New list for feature list buttons
@@ -1425,6 +1521,14 @@ class MainWindow(QMainWindow):
             if not character.spellcasting_stat:
                 spell_dc_widget.line_edit.setEnabled(False)
 
+            # Status Button (placed above all other buttons)
+            status_button = QPushButton("Statuses")
+            status_button.setStyleSheet(f"color: {SALMON};")
+            self.buttonsStatusListList.append(status_button)
+            status_button.clicked.connect(
+                lambda _, c=character: self.open_status_window(c)
+            )
+
             # Saving Throws Button
             saving_throws_button = QPushButton("Saving Throws")
             saving_throws_button.setStyleSheet(f"color: {GOLDEN_ROD};")  # Set the text color to ROYAL_BLUE
@@ -1540,16 +1644,18 @@ class MainWindow(QMainWindow):
             layout.addWidget(self.labelsAndLineEditSpellAttackBonusList[-1])  # Add spell attack bonus widget
             layout.addWidget(self.labelsAndLineEditSpellDCList[-1])  # Add spell DC widget
             
-            layout.addWidget(self.buttonsSavingThrowsListList[-1])  # Add saving throws button
-            layout.addWidget(self.buttonsSkillsListList[-1])  # Add saving throws button
-            layout.addWidget(self.buttonsFeatureListList[-1])  # Add features button
-            layout.addWidget(self.buttonsSpellListList[-1])  # Add spell list button
-            layout.addWidget(self.buttonsSpellSlotsListList[-1])  # Add spell slots button
+            # Buttons (Status first)
+            layout.addWidget(self.buttonsStatusListList[-1])      # Status
+            layout.addWidget(self.buttonsSavingThrowsListList[-1])  # Saving throws
+            layout.addWidget(self.buttonsSkillsListList[-1])        # Skills
+            layout.addWidget(self.buttonsFeatureListList[-1])       # Features
+            layout.addWidget(self.buttonsSpellListList[-1])         # Spells
+            layout.addWidget(self.buttonsSpellSlotsListList[-1])    # Spell Slots
             if character.class_name == 'Warlock':
-                layout.addWidget(self.buttonsInvocationsListList[-1])  # Add invocations button
+                layout.addWidget(self.buttonsInvocationsListList[-1])
             if character.class_name == 'Sorcerer':
-                layout.addWidget(self.buttonsMetamagicListList[-1])  # Add metamagic button
-            layout.addWidget(self.buttonsItemListList[-1])  # Add item list button
+                layout.addWidget(self.buttonsMetamagicListList[-1])
+            layout.addWidget(self.buttonsItemListList[-1])          # Inventory
 
             # Wrap the layout in a QWidget to apply a border
             layout_widget = QWidget()
@@ -1709,6 +1815,15 @@ class MainWindow(QMainWindow):
         self._rules_window.show()
         self._rules_window.raise_()
         self._rules_window.activateWindow()
+
+    def open_status_window(self, character):
+        name = getattr(character, "name", "Unknown")
+        if name not in self._status_windows:
+            self._status_windows[name] = StatusWindow(character, self)
+        win = self._status_windows[name]
+        win.show()
+        win.raise_()
+        win.activateWindow()
 
 app = QApplication(sys.argv)
 
